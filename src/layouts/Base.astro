@@ -26,6 +26,9 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
     <meta property="og:type" content="article" />
     <meta property="og:url" content={canonicalUrl.toString()} />
     <title>{title}</title>
+    <script is:inline>
+      (function(){var t=localStorage.getItem("blog-theme");if(t&&t!=="parchment")document.documentElement.setAttribute("data-theme",t)})();
+    </script>
   </head>
   <body class="bg-paper text-ink min-h-screen">
     <header class="border-b border-border">
@@ -58,13 +61,57 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
     </main>
 
     <footer class="border-t border-border mt-16">
-      <div class="max-w-2xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-muted">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6 py-8 flex items-center justify-between text-sm text-muted">
         <p>
           powered by <a href="https://atproto.com" target="_blank" rel="noopener" class="text-accent/70 hover:text-accent transition-colors">AT Protocol</a>
           <span class="text-border-light mx-2">&middot;</span>
           served from <a href="https://arcnode.xyz" class="text-accent/70 hover:text-accent transition-colors">arcnode.xyz</a>
         </p>
+        <div id="theme-selector" class="flex items-center gap-1.5">
+          <button data-set-theme="parchment" title="Parchment" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #d9ccb4;"></button>
+          <button data-set-theme="midnight" title="Midnight" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #0f1419;"></button>
+          <button data-set-theme="moss" title="Moss" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #dde6d5;"></button>
+          <button data-set-theme="slate" title="Slate" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #eef0f3;"></button>
+          <button data-set-theme="rose" title="Rose" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #f0e2e4;"></button>
+        </div>
       </div>
     </footer>
+
+    <script>
+      const THEME_COLORS: Record<string, string> = {
+        parchment: "#d9ccb4",
+        midnight: "#0f1419",
+        moss: "#dde6d5",
+        slate: "#eef0f3",
+        rose: "#f0e2e4",
+      };
+
+      function applyTheme(theme: string) {
+        if (theme === "parchment") {
+          document.documentElement.removeAttribute("data-theme");
+        } else {
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", THEME_COLORS[theme] || THEME_COLORS.parchment);
+        document.querySelectorAll(".theme-dot").forEach((dot) => {
+          const btn = dot as HTMLButtonElement;
+          const isActive = btn.dataset.setTheme === theme;
+          btn.style.transform = isActive ? "scale(1.35)" : "";
+          btn.style.boxShadow = isActive ? "0 0 0 2px var(--color-accent)" : "";
+        });
+        localStorage.setItem("blog-theme", theme);
+      }
+
+      // Apply saved theme immediately
+      applyTheme(localStorage.getItem("blog-theme") || "parchment");
+
+      // Bind click handlers
+      document.querySelectorAll("[data-set-theme]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          applyTheme((btn as HTMLElement).dataset.setTheme || "parchment");
+        });
+      });
+    </script>
   </body>
 </html>
