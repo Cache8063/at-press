@@ -1,0 +1,70 @@
+---
+import "../styles/global.css";
+import { BLOG_URL, HANDLE } from "../lib/constants";
+
+interface Props {
+  title: string;
+  description?: string;
+  wide?: boolean;
+}
+
+const { title, description = "Writing by bkb", wide = false } = Astro.props;
+const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#d9ccb4" />
+    <link rel="canonical" href={canonicalUrl.toString()} />
+    <link rel="alternate" type="application/rss+xml" title="bkb — writing" href="/rss.xml" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content={canonicalUrl.toString()} />
+    <title>{title}</title>
+  </head>
+  <body class="bg-paper text-ink min-h-screen">
+    <header class="border-b border-border">
+      <nav class="max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
+        <a href="/" class="font-serif text-xl font-bold tracking-tight text-ink-bright hover:text-accent transition-colors">
+          bkb
+        </a>
+        <div class="flex items-center gap-4 sm:gap-5 text-sm text-muted">
+          <a href="/write" class="hover:text-accent transition-colors">write</a>
+          <a
+            href={`https://bsky.app/profile/${HANDLE}`}
+            target="_blank"
+            rel="noopener"
+            class="hover:text-ink transition-colors"
+          >
+            bluesky
+          </a>
+          <a
+            href="/rss.xml"
+            class="hover:text-ink transition-colors"
+          >
+            rss
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main class={`mx-auto px-4 sm:px-6 py-8 sm:py-12 ${wide ? 'max-w-6xl' : 'max-w-2xl'}`}>
+      <slot />
+    </main>
+
+    <footer class="border-t border-border mt-16">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-muted">
+        <p>
+          powered by <a href="https://atproto.com" target="_blank" rel="noopener" class="text-accent/70 hover:text-accent transition-colors">AT Protocol</a>
+          <span class="text-border-light mx-2">&middot;</span>
+          served from <a href="https://arcnode.xyz" class="text-accent/70 hover:text-accent transition-colors">arcnode.xyz</a>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

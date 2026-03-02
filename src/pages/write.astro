@@ -1,0 +1,435 @@
+---
+import Base from "../layouts/Base.astro";
+import { verifyProxyTicket, isOwner, getLoginUrl } from "../lib/auth";
+import { getDraftEntries, getRawBlogEntry, type BlogEntry } from "../lib/pds";
+import { formatDate } from "../lib/utils";
+
+let authed = false;
+let handle = "";
+
+// Check for proxy ticket in URL (redirect from atauth)
+const ticket = Astro.url.searchParams.get("_atauth_ticket");
+if (ticket) {
+  const user = await verifyProxyTicket(ticket);
+  if (user && isOwner(user.did)) {
+    Astro.cookies.set("session_did", user.did, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 86400 * 7,
+    });
+    Astro.cookies.set("session_handle", user.handle, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 86400 * 7,
+    });
+    return Astro.redirect("/write");
+  }
+}
+
+// Check existing session cookie
+const sessionDid = Astro.cookies.get("session_did")?.value;
+const sessionHandle = Astro.cookies.get("session_handle")?.value;
+if (sessionDid && sessionHandle && isOwner(sessionDid)) {
+  authed = true;
+  handle = sessionHandle;
+}
+
+const loginUrl = getLoginUrl();
+
+// Load drafts and optional edit entry
+let drafts: BlogEntry[] = [];
+let editEntry: BlogEntry | null = null;
+const editRkey = Astro.url.searchParams.get("edit");
+
+if (authed) {
+  drafts = await getDraftEntries();
+  if (editRkey) {
+    editEntry = await getRawBlogEntry(editRkey);
+  }
+}
+
+const isEditing = editEntry !== null;
+const pageTitle = isEditing ? "Edit entry" : "New entry";
+const editBlobs = editEntry?.blobs ?? [];
+---
+
+<Base title={`${pageTitle} — bkb`} description="Compose a blog entry" wide={authed}>
+  {!authed ? (
+    <div class="py-16 text-center fade-in max-w-2xl mx-auto">
+      <h1 class="font-serif text-2xl font-bold text-ink-bright mb-4">Sign in to write</h1>
+      <p class="text-muted font-serif mb-8">Authenticate with your AT Protocol identity.</p>
+      <a
+        href={loginUrl}
+        class="inline-block px-6 py-3 bg-accent/10 border border-accent/30 text-accent font-serif rounded-lg hover:bg-accent/20 transition-colors"
+      >
+        Sign in with AT Protocol
+      </a>
+    </div>
+  ) : (
+    <div class="fade-in">
+      <div class="flex items-center justify-between mb-8">
+        <h1 class="font-serif text-2xl font-bold text-ink-bright">{pageTitle}</h1>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-mono text-muted hidden sm:inline">@{handle}</span>
+          <a
+            href="/api/logout"
+            class="text-xs font-mono text-muted hover:text-accent transition-colors"
+          >
+            sign out
+          </a>
+        </div>
+      </div>
+
+      {drafts.length > 0 && !isEditing && (
+        <div class="mb-10 pb-8 border-b border-border">
+          <h2 class="font-serif text-lg font-semibold text-ink-bright mb-4">Drafts</h2>
+          <div class="space-y-1">
+            {drafts.map((draft) => (
+              <a
+                href={`/write?edit=${draft.rkey}`}
+                class="group flex items-baseline justify-between py-2 px-3 -mx-3 rounded-lg hover:bg-paper-raised transition-colors"
+              >
+                <span class="font-serif text-ink-bright group-hover:text-accent transition-colors truncate mr-4">
+                  {draft.title}
+                </span>
+                <time class="text-xs font-mono text-muted shrink-0">
+                  {formatDate(draft.createdAt)}
+                </time>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Editor column -->
+        <div>
+          <form
+            id="editor-form"
+            class="space-y-5"
+            data-rkey={editEntry?.rkey || ""}
+            data-created-at={editEntry?.createdAt || ""}
+            data-visibility={editEntry?.visibility || ""}
+          >
+            <div>
+              <input
+                type="text"
+                id="title-input"
+                placeholder="Title"
+                required
+                value={editEntry?.title || ""}
+                class="w-full px-4 py-3 bg-paper-dim border border-border rounded-lg text-ink-bright font-serif text-lg sm:text-xl focus:outline-none focus:border-accent placeholder:text-muted transition-colors"
+              />
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+              <label
+                id="image-upload-label"
+                class="cursor-pointer px-3 py-1.5 text-muted hover:text-ink border border-border rounded-lg hover:border-border-light transition-colors inline-flex items-center gap-1.5"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                image
+                <input
+                  type="file"
+                  id="image-input"
+                  accept="image/png,image/jpeg,image/webp"
+                  class="hidden"
+                />
+              </label>
+              <span id="upload-status" class="text-xs text-muted"></span>
+            </div>
+            <div>
+              <textarea
+                id="content-input"
+                placeholder="Write in markdown..."
+                rows="20"
+                required
+                class="editor-textarea w-full px-4 py-3"
+              >{editEntry?.content || ""}</textarea>
+            </div>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <p class="text-xs text-muted font-mono">markdown supported</p>
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  id="preview-btn"
+                  class="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-sm text-muted hover:text-ink border border-border rounded-lg hover:border-border-light transition-colors md:hidden"
+                >
+                  preview
+                </button>
+                <button
+                  type="button"
+                  id="draft-btn"
+                  class="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-sm text-muted hover:text-ink border border-border rounded-lg hover:border-border-light transition-colors"
+                >
+                  save draft
+                </button>
+                <button
+                  type="submit"
+                  id="publish-btn"
+                  class="flex-1 sm:flex-none px-6 py-2.5 sm:py-2 bg-accent/10 border border-accent/30 text-accent font-serif rounded-lg hover:bg-accent/20 transition-colors"
+                >
+                  publish
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <p id="editor-status" class="text-sm mt-4 hidden"></p>
+        </div>
+
+        <!-- Desktop preview column -->
+        <div id="desktop-preview" class="hidden md:block">
+          <p class="text-xs font-mono text-muted uppercase tracking-wider mb-4">Preview</p>
+          <div id="desktop-preview-content" class="prose"></div>
+        </div>
+      </div>
+
+      <!-- Mobile preview (toggle) -->
+      <div id="mobile-preview" class="md:hidden hidden mt-8 pt-8 border-t border-border">
+        <p class="text-xs font-mono text-muted uppercase tracking-wider mb-4">Preview</p>
+        <div id="mobile-preview-content" class="prose"></div>
+      </div>
+    </div>
+  )}
+</Base>
+
+{authed && (
+  <script define:vars={{ editBlobs }}>
+    window.__editBlobs = editBlobs;
+  </script>
+)}
+
+<script>
+  const editorForm = document.getElementById("editor-form") as HTMLFormElement | null;
+  if (editorForm) {
+    const titleInput = document.getElementById("title-input") as HTMLInputElement;
+    const contentInput = document.getElementById("content-input") as HTMLTextAreaElement;
+    const publishBtn = document.getElementById("publish-btn") as HTMLButtonElement;
+    const draftBtn = document.getElementById("draft-btn") as HTMLButtonElement;
+    const statusEl = document.getElementById("editor-status")!;
+    const previewBtn = document.getElementById("preview-btn");
+    const desktopPreviewContent = document.getElementById("desktop-preview-content");
+    const mobilePreview = document.getElementById("mobile-preview");
+    const mobilePreviewContent = document.getElementById("mobile-preview-content");
+    const imageInput = document.getElementById("image-input") as HTMLInputElement;
+    const uploadStatus = document.getElementById("upload-status")!;
+
+    const editRkey = editorForm.dataset.rkey || "";
+    const editCreatedAt = editorForm.dataset.createdAt || "";
+    const isEditing = editRkey.length > 0;
+
+    // --- Blob tracking ---
+    let uploadedBlobs: any[] = (window as any).__editBlobs || [];
+
+    // --- Image upload ---
+    imageInput.addEventListener("change", async () => {
+      const file = imageInput.files?.[0];
+      if (!file) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        uploadStatus.textContent = "Image must be under 5 MB";
+        uploadStatus.className = "text-xs text-red-400";
+        return;
+      }
+
+      uploadStatus.textContent = "uploading...";
+      uploadStatus.className = "text-xs text-muted";
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const res = await fetch("/api/upload-image", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.blob && data.url) {
+          uploadedBlobs.push(data.blob);
+
+          const alt = file.name.replace(/\.[^.]+$/, "");
+          const markdown = `![${alt}](${data.url})`;
+          insertAtCursor(contentInput, markdown);
+
+          uploadStatus.textContent = "";
+          uploadStatus.className = "text-xs text-muted";
+        } else {
+          uploadStatus.textContent = data.error || "Upload failed";
+          uploadStatus.className = "text-xs text-red-400";
+        }
+      } catch {
+        uploadStatus.textContent = "Network error";
+        uploadStatus.className = "text-xs text-red-400";
+      }
+
+      imageInput.value = "";
+    });
+
+    function insertAtCursor(textarea: HTMLTextAreaElement, text: string) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const before = textarea.value.substring(0, start);
+      const after = textarea.value.substring(end);
+
+      const needNewlineBefore = before.length > 0 && !before.endsWith("\n");
+      const needNewlineAfter = after.length > 0 && !after.startsWith("\n");
+
+      const insert =
+        (needNewlineBefore ? "\n\n" : "") +
+        text +
+        (needNewlineAfter ? "\n\n" : "");
+
+      textarea.value = before + insert + after;
+      const newPos = start + insert.length;
+      textarea.selectionStart = textarea.selectionEnd = newPos;
+      textarea.focus();
+      textarea.dispatchEvent(new Event("input"));
+    }
+
+    // --- Save entry ---
+    async function saveEntry(visibility: "public" | "author") {
+      const btn = visibility === "public" ? publishBtn : draftBtn;
+      const label = visibility === "public" ? "publish" : "save draft";
+      btn.disabled = true;
+      btn.textContent = visibility === "public" ? "publishing..." : "saving...";
+      statusEl.classList.add("hidden");
+
+      const endpoint = isEditing ? "/api/update" : "/api/publish";
+      const payload: Record<string, unknown> = {
+        title: titleInput.value,
+        content: contentInput.value,
+        visibility,
+        blobs: uploadedBlobs,
+      };
+      if (isEditing) {
+        payload.rkey = editRkey;
+        payload.createdAt = editCreatedAt;
+      }
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          if (visibility === "public") {
+            window.location.href = `/${data.rkey}`;
+          } else {
+            window.location.href = "/write";
+          }
+        } else {
+          statusEl.textContent = data.error || `${label} failed`;
+          statusEl.className = "text-red-400 text-sm mt-4";
+          btn.disabled = false;
+          btn.textContent = label;
+        }
+      } catch {
+        statusEl.textContent = "Network error";
+        statusEl.className = "text-red-400 text-sm mt-4";
+        btn.disabled = false;
+        btn.textContent = label;
+      }
+    }
+
+    editorForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      saveEntry("public");
+    });
+
+    draftBtn.addEventListener("click", () => {
+      if (!titleInput.value.trim() || !contentInput.value.trim()) {
+        statusEl.textContent = "Title and content are required";
+        statusEl.className = "text-red-400 text-sm mt-4";
+        return;
+      }
+      saveEntry("author");
+    });
+
+    // --- Preview rendering ---
+    function escapeHtml(s: string): string {
+      const div = document.createElement("div");
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    function renderPreview(): string {
+      const md = escapeHtml(contentInput.value);
+      const html = md
+        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />')
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`(.+?)`/g, '<code>$1</code>')
+        .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
+      return `<p>${html}</p>`;
+    }
+
+    // Desktop: live preview with debounce
+    let previewTimer: number;
+    function updateDesktopPreview() {
+      if (desktopPreviewContent) {
+        desktopPreviewContent.innerHTML = renderPreview();
+      }
+    }
+
+    contentInput.addEventListener("input", () => {
+      clearTimeout(previewTimer);
+      previewTimer = window.setTimeout(updateDesktopPreview, 150);
+    });
+
+    // Initial desktop preview
+    updateDesktopPreview();
+
+    // Mobile: toggle preview
+    if (previewBtn && mobilePreview && mobilePreviewContent) {
+      previewBtn.addEventListener("click", () => {
+        if (mobilePreview.classList.contains("hidden")) {
+          mobilePreviewContent.innerHTML = renderPreview();
+          mobilePreview.classList.remove("hidden");
+          previewBtn.textContent = "edit";
+        } else {
+          mobilePreview.classList.add("hidden");
+          previewBtn.textContent = "preview";
+        }
+      });
+    }
+  }
+</script>
+
+<style is:global>
+  .editor-textarea {
+    font-family: var(--font-mono);
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    background: var(--color-paper-dim);
+    color: var(--color-ink);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    resize: vertical;
+    transition: border-color 0.2s;
+  }
+  .editor-textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+  .editor-textarea::placeholder {
+    color: var(--color-muted);
+  }
+</style>

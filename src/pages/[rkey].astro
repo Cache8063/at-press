@@ -1,0 +1,224 @@
+---
+import Base from "../layouts/Base.astro";
+import { getBlogEntry, getRawBlogEntry, isValidRkey } from "../lib/pds";
+import { HANDLE, PDS_URL, DID, BLOG_COLLECTION } from "../lib/constants";
+import { formatDate } from "../lib/utils";
+import { isOwner } from "../lib/auth";
+import { marked } from "marked";
+import DOMPurify from "isomorphic-dompurify";
+
+const renderer = new marked.Renderer();
+renderer.link = ({ href, title, text }) => {
+  const titleAttr = title ? ` title="${title}"` : "";
+  return `<a href="${href}" target="_blank" rel="noopener noreferrer"${titleAttr}>${text}</a>`;
+};
+marked.use({ renderer });
+
+const { rkey } = Astro.params;
+
+if (!rkey || !isValidRkey(rkey)) {
+  return new Response("Not found", { status: 404 });
+}
+
+// Auth check before fetching — owner can see drafts
+const sessionDid = Astro.cookies.get("session_did")?.value;
+const isAuthor = sessionDid ? isOwner(sessionDid) : false;
+
+const entry = isAuthor
+  ? await getRawBlogEntry(rkey)
+  : await getBlogEntry(rkey);
+
+if (!entry) {
+  return new Response("Not found", { status: 404 });
+}
+
+const isDraft = entry.visibility !== "public";
+
+const rawHtml = await marked.parse(entry.content);
+const html = DOMPurify.sanitize(rawHtml, {
+  ADD_ATTR: ["target"],
+});
+
+// Pass entry data to client script for visibility toggle
+const entryData = {
+  rkey,
+  title: entry.title,
+  content: entry.content,
+  createdAt: entry.createdAt,
+  visibility: entry.visibility,
+  blobs: entry.blobs ?? [],
+};
+---
+
+<Base title={`${entry.title} — bkb`} description={entry.content.slice(0, 155)}>
+  <article class="fade-in">
+    {isDraft && isAuthor && (
+      <div class="mb-6 px-4 py-3 bg-accent/10 border border-accent/30 rounded-lg text-sm font-mono text-accent">
+        draft — only visible to you
+      </div>
+    )}
+
+    <header class="mb-10">
+      <time
+        datetime={entry.createdAt}
+        class="text-xs font-mono text-muted uppercase tracking-wider"
+      >
+        {formatDate(entry.createdAt, { weekday: true })}
+      </time>
+      <h1 class="font-serif text-2xl sm:text-3xl md:text-4xl font-bold mt-2 leading-tight text-ink-bright">
+        {entry.title}
+      </h1>
+    </header>
+
+    <div class="prose fade-in-delay" set:html={html} />
+
+    <footer class="mt-16 pt-8 border-t border-border">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm text-muted">
+        <div class="font-serif">
+          <span>by </span>
+          <a
+            href={`https://bsky.app/profile/${HANDLE}`}
+            target="_blank"
+            rel="noopener"
+            class="text-accent hover:text-accent-light transition-colors"
+          >
+            @{HANDLE}
+          </a>
+        </div>
+        <div class="flex items-center gap-4 text-xs font-mono">
+          <a
+            href={`${PDS_URL}/xrpc/com.atproto.repo.getRecord?repo=${DID}&collection=${BLOG_COLLECTION}&rkey=${rkey}`}
+            target="_blank"
+            rel="noopener"
+            class="hover:text-ink transition-colors"
+          >
+            view record
+          </a>
+          <span class="text-border-light">|</span>
+          <a href="/" class="hover:text-ink transition-colors">all posts</a>
+          {isAuthor && (
+            <>
+              <span class="text-border-light">|</span>
+              <a
+                href={`/write?edit=${rkey}`}
+                class="hover:text-ink transition-colors"
+              >
+                edit
+              </a>
+              <span class="text-border-light">|</span>
+              {isDraft ? (
+                <button
+                  id="visibility-btn"
+                  class="text-accent hover:text-accent-light transition-colors cursor-pointer"
+                >
+                  publish
+                </button>
+              ) : (
+                <button
+                  id="visibility-btn"
+                  class="text-muted hover:text-ink transition-colors cursor-pointer"
+                >
+                  unpublish
+                </button>
+              )}
+              <span class="text-border-light">|</span>
+              <button
+                id="delete-btn"
+                data-rkey={rkey}
+                class="text-red-700/60 hover:text-red-700 transition-colors cursor-pointer"
+              >
+                delete
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </footer>
+  </article>
+</Base>
+
+{isAuthor && (
+  <script define:vars={{ entryData }}>
+    window.__entryData = entryData;
+  </script>
+  <script>
+    const entry = (window as any).__entryData;
+
+    // Visibility toggle (publish/unpublish)
+    const visibilityBtn = document.getElementById("visibility-btn");
+    if (visibilityBtn && entry) {
+      const isDraft = entry.visibility !== "public";
+      visibilityBtn.addEventListener("click", async () => {
+        const action = isDraft ? "Publish" : "Unpublish";
+        const confirmMsg = isDraft
+          ? "Publish this draft? It will become visible to everyone."
+          : "Unpublish this post? It will become a draft.";
+        if (!confirm(confirmMsg)) return;
+
+        const newVisibility = isDraft ? "public" : "author";
+        visibilityBtn.textContent = isDraft ? "publishing..." : "unpublishing...";
+
+        try {
+          const res = await fetch("/api/update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              rkey: entry.rkey,
+              title: entry.title,
+              content: entry.content,
+              createdAt: entry.createdAt,
+              visibility: newVisibility,
+              blobs: entry.blobs || [],
+            }),
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            if (newVisibility === "author") {
+              window.location.href = "/write";
+            } else {
+              window.location.reload();
+            }
+          } else {
+            alert(data.error || `${action} failed`);
+            visibilityBtn.textContent = isDraft ? "publish" : "unpublish";
+          }
+        } catch {
+          alert("Network error");
+          visibilityBtn.textContent = isDraft ? "publish" : "unpublish";
+        }
+      });
+    }
+
+    // Delete
+    const deleteBtn = document.getElementById("delete-btn");
+    if (deleteBtn) {
+      deleteBtn.addEventListener("click", async () => {
+        if (!confirm("Delete this post? This cannot be undone.")) return;
+
+        const rkey = deleteBtn.dataset.rkey;
+        deleteBtn.textContent = "deleting...";
+
+        try {
+          const res = await fetch("/api/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rkey }),
+          });
+
+          const data = await res.json();
+
+          if (data.success) {
+            window.location.href = "/";
+          } else {
+            alert(data.error || "Delete failed");
+            deleteBtn.textContent = "delete";
+          }
+        } catch {
+          alert("Network error");
+          deleteBtn.textContent = "delete";
+        }
+      });
+    }
+  </script>
+)}

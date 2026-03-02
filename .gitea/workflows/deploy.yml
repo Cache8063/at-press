@@ -1,0 +1,91 @@
+name: Deploy Blog
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['*.md']
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  deploy:
+    name: Build & Deploy
+    runs-on: host
+    needs: [test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set short SHA
+        id: sha
+        run: echo "short=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+      - name: Notify build started
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          FIRST_LINE=$(echo "$COMMIT_MSG" | head -1)
+          MSG=$(jq -n --arg body "🔨 arcnode-blog: build started @ ${{ steps.sha.outputs.short }}
+          ├ Commit: $FIRST_LINE
+          └ Triggered by: ${{ github.actor }}" '{msgtype: "m.text", body: $body}')
+          curl -sf -X PUT \
+            "${{ secrets.MATRIX_HOMESERVER_URL }}/_matrix/client/v3/rooms/${{ secrets.MATRIX_CICD_ROOM_ID }}/send/m.room.message/cicd-$(date +%s)-$$" \
+            -H "Authorization: Bearer ${{ secrets.MATRIX_ACCESS_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$MSG" || true
+
+      - name: Sync source to deploy directory
+        run: |
+          rsync -a --delete \
+            --exclude node_modules --exclude .git --exclude dist \
+            --exclude tests --exclude test-results --exclude .astro \
+            ./ /opt/arcnode-blog/
+
+      - name: Build and restart container
+        run: |
+          cd /opt/arcnode-blog
+          docker compose build --no-cache
+          docker compose up -d
+
+      - name: Health check
+        run: |
+          sleep 5
+          for i in 1 2 3 4 5; do
+            if curl -sf http://127.0.0.1:4000/ > /dev/null 2>&1; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Attempt $i failed, waiting..."
+            sleep 3
+          done
+          echo "Health check failed after 5 attempts"
+          exit 1
+
+      - name: Notify result
+        if: always()
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            EMOJI="✅"; STATUS="deployed"
+          else
+            EMOJI="❌"; STATUS="FAILED"
+          fi
+          FIRST_LINE=$(echo "$COMMIT_MSG" | head -1)
+          MSG=$(jq -n --arg body "${EMOJI} arcnode-blog: ${STATUS} @ ${{ steps.sha.outputs.short }}
+          └ $FIRST_LINE" '{msgtype: "m.text", body: $body}')
+          curl -sf -X PUT \
+            "${{ secrets.MATRIX_HOMESERVER_URL }}/_matrix/client/v3/rooms/${{ secrets.MATRIX_CICD_ROOM_ID }}/send/m.room.message/cicd-$(date +%s)-$$" \
+            -H "Authorization: Bearer ${{ secrets.MATRIX_ACCESS_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$MSG" || true

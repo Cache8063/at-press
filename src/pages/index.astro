@@ -1,0 +1,57 @@
+---
+import Base from "../layouts/Base.astro";
+import { getBlogEntries, getProfile } from "../lib/pds";
+import { HANDLE } from "../lib/constants";
+import { formatDate, excerpt } from "../lib/utils";
+
+const profile = await getProfile();
+const entries = await getBlogEntries();
+---
+
+<Base title="bkb — writing" description={profile.description || "Writing by bkb on the AT Protocol"}>
+  <div class="mb-14 fade-in">
+    <div class="flex items-center gap-4 mb-5">
+      {profile.avatarUrl && (
+        <img
+          src={profile.avatarUrl}
+          alt={profile.displayName}
+          class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover ring-1 ring-border-light"
+        />
+      )}
+      <div>
+        <h1 class="font-serif text-xl sm:text-2xl font-bold text-ink-bright">{profile.displayName}</h1>
+        <p class="text-sm text-muted">@{HANDLE}</p>
+      </div>
+    </div>
+    {profile.description && (
+      <p class="text-muted text-sm whitespace-pre-line leading-relaxed">{profile.description}</p>
+    )}
+  </div>
+
+  {entries.length === 0 ? (
+    <p class="text-muted italic font-serif fade-in-delay">No entries yet.</p>
+  ) : (
+    <div class="space-y-1 fade-in-delay">
+      {entries.map((entry) => (
+        <article>
+          <a href={`/${entry.rkey}`} class="group block py-4 sm:py-5 -mx-3 sm:-mx-4 px-3 sm:px-4 rounded-lg hover:bg-paper-raised transition-colors">
+            <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4">
+              <h2 class="font-serif text-base sm:text-lg font-semibold text-ink-bright group-hover:text-accent transition-colors">
+                {entry.title}
+              </h2>
+              <time
+                datetime={entry.createdAt}
+                class="text-xs font-mono text-muted shrink-0"
+              >
+                {formatDate(entry.createdAt)}
+              </time>
+            </div>
+            <p class="text-muted text-sm leading-relaxed mt-1.5 font-serif">
+              {excerpt(entry.content)}
+            </p>
+          </a>
+        </article>
+      ))}
+    </div>
+  )}
+</Base>
