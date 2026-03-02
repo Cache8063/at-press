@@ -46,10 +46,42 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     );
   }
 
+  const bytes = await file.arrayBuffer();
+
+  // Validate file magic bytes to prevent type spoofing
+  if (bytes.byteLength < 12) {
+    return new Response(
+      JSON.stringify({ error: "File too small to be a valid image" }),
+      { status: 400 }
+    );
+  }
+
+  const header = new Uint8Array(bytes, 0, 12);
+  const MAGIC: Record<string, number[]> = {
+    "image/png": [0x89, 0x50, 0x4e, 0x47],
+    "image/jpeg": [0xff, 0xd8, 0xff],
+    "image/webp": [0x52, 0x49, 0x46, 0x46],
+  };
+
+  const expected = MAGIC[file.type];
+  if (!expected || !expected.every((b, i) => header[i] === b)) {
+    return new Response(
+      JSON.stringify({ error: "File content does not match declared type" }),
+      { status: 400 }
+    );
+  }
+  if (file.type === "image/webp") {
+    const webp = [0x57, 0x45, 0x42, 0x50]; // "WEBP" at offset 8
+    if (!webp.every((b, i) => header[8 + i] === b)) {
+      return new Response(
+        JSON.stringify({ error: "File content does not match declared type" }),
+        { status: 400 }
+      );
+    }
+  }
+
   const [accessJwt, sessionErr] = await createPdsSession();
   if (sessionErr) return sessionErr;
-
-  const bytes = await file.arrayBuffer();
 
   const uploadRes = await fetch(
     `${PDS_URL}/xrpc/com.atproto.repo.uploadBlob`,

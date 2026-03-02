@@ -4,7 +4,7 @@ import { BLOG_URL, PDS_URL, DID } from "./constants";
 
 export function checkOrigin(request: Request): Response | null {
   const origin = request.headers.get("origin");
-  if (origin && origin !== BLOG_URL) {
+  if (!origin || origin !== BLOG_URL) {
     return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
   }
   return null;

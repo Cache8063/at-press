@@ -21,7 +21,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   const title = typeof body.title === "string" ? body.title.trim() : "";
   const content = typeof body.content === "string" ? body.content.trim() : "";
   const visibility = typeof body.visibility === "string" ? body.visibility : "";
-  const createdAt = typeof body.createdAt === "string" ? body.createdAt : new Date().toISOString();
+  const rawCreatedAt = typeof body.createdAt === "string" ? body.createdAt : "";
+  const createdAt = rawCreatedAt && !isNaN(Date.parse(rawCreatedAt))
+    ? new Date(rawCreatedAt).toISOString()
+    : new Date().toISOString();
 
   if (!rkey || !isValidRkey(rkey)) {
     return new Response(JSON.stringify({ error: "Invalid rkey" }), { status: 400 });

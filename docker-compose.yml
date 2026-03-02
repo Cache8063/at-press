@@ -5,8 +5,8 @@ services:
     restart: unless-stopped
     ports:
       - "0.0.0.0:4000:4000"
+    env_file: .env
     environment:
       - HOST=0.0.0.0
       - PORT=4000
-      - PDS_APP_PASSWORD=5wxb-dk6w-vuth-lgbp
       - ATAUTH_GATEWAY_URL=http://172.17.0.1:3100

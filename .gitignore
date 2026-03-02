@@ -3,3 +3,5 @@ dist/
 .astro/
 test-results/
 *.log
+.env
+.env.*
