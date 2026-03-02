@@ -54,6 +54,7 @@ jobs:
           rsync -az --delete \
             --exclude node_modules --exclude .git --exclude dist \
             --exclude tests --exclude test-results --exclude .astro \
+            --exclude .env \
             -e "ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no" \
             ./ root@${{ secrets.DEPLOY_HOST }}:/opt/arcnode-blog/
 
