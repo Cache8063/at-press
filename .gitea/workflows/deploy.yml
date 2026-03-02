@@ -44,24 +44,34 @@ jobs:
             -H "Content-Type: application/json" \
             -d "$MSG" || true
 
-      - name: Sync source to deploy directory
+      - name: Setup SSH
         run: |
-          rsync -a --delete \
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Sync source to server
+        run: |
+          rsync -az --delete \
             --exclude node_modules --exclude .git --exclude dist \
             --exclude tests --exclude test-results --exclude .astro \
-            ./ /opt/arcnode-blog/
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            ./ root@${{ secrets.DEPLOY_HOST }}:/opt/arcnode-blog/
 
       - name: Build and restart container
         run: |
-          cd /opt/arcnode-blog
-          docker compose build --no-cache
-          docker compose up -d
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            root@${{ secrets.DEPLOY_HOST }} \
+            "cd /opt/arcnode-blog && docker compose build --no-cache && docker compose up -d"
 
       - name: Health check
         run: |
           sleep 5
           for i in 1 2 3 4 5; do
-            if curl -sf http://127.0.0.1:4000/ > /dev/null 2>&1; then
+            if ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+              root@${{ secrets.DEPLOY_HOST }} \
+              "curl -sf http://127.0.0.1:4000/ > /dev/null 2>&1"; then
               echo "Health check passed"
               exit 0
             fi
@@ -70,6 +80,10 @@ jobs:
           done
           echo "Health check failed after 5 attempts"
           exit 1
+
+      - name: Cleanup SSH
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
 
       - name: Notify result
         if: always()
