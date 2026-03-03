@@ -12,6 +12,16 @@ Personal blog built on Astro SSR with AT Protocol (Bluesky) as the content backe
 - **Testing**: Vitest (unit) + Playwright (E2E)
 - **Deploy**: Docker on Hetzner, CI/CD via Gitea Actions
 
+## Features
+
+- Sidebar profile with AT Protocol identity
+- Editable about section (markdown, stored on PDS as `xyz.arcnode.blog.about`)
+- 5 color themes with localStorage persistence
+- Draft/publish workflow with visibility toggle
+- Image uploads with magic byte validation
+- RSS feed
+- Responsive layout (sidebar collapses on mobile)
+
 ## Quick Start
 
 ```bash
@@ -33,15 +43,17 @@ npm run dev
 ## Testing
 
 ```bash
-npm test          # Unit tests
+npm test          # Unit tests (85 tests)
 npm run test:e2e  # E2E tests (against production)
 ```
 
 ## Deployment
 
 Push to `main` triggers automated deploy via Gitea Actions:
-1. Run tests + build
-2. rsync to server
-3. Docker rebuild
+1. Run tests + build (ubuntu-latest)
+2. rsync to server (excludes .env, node_modules, .git)
+3. Docker rebuild + restart
 4. Health check
 5. Matrix notification
+
+Manual fallback: `rsync` locally + `ssh root@pds-hetzner "cd /opt/arcnode-blog && docker compose build --no-cache && docker compose up -d"`

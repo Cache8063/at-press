@@ -11,28 +11,36 @@ description: "Deploying the blog, Docker, CI/CD, and server operations."
 - **Path**: `/opt/arcnode-blog/`
 - **Container**: Docker, port 4000
 - **Git**: Gitea at `gitea.cloudforest-basilisk.ts.net/Arcnode.xyz/arcnode-blog`
+- **URL**: https://blog.arcnode.xyz (via Cloudflare)
 
-### Manual Deploy
+### Manual Deploy (when CI/CD runner is stuck)
 
 ```bash
-ssh root@pds-hetzner
-cd /opt/arcnode-blog
-docker compose build --no-cache
-docker compose up -d
-curl localhost:4000  # health check
+# From local machine
+rsync -az --delete \
+  --exclude node_modules --exclude .git --exclude dist \
+  --exclude tests --exclude test-results --exclude .astro \
+  --exclude .env \
+  -e "ssh -o StrictHostKeyChecking=no" \
+  ./ root@pds-hetzner:/opt/arcnode-blog/
+
+ssh root@pds-hetzner "cd /opt/arcnode-blog && docker compose build --no-cache && docker compose up -d"
+curl -sf https://blog.arcnode.xyz/  # verify
 ```
 
 ### CI/CD (Gitea Actions)
 
-Push to `main` triggers: test -> deploy.
+Push to `main` triggers both workflows:
 
 ```
 .gitea/workflows/
-├── ci.yml       # Test + build on push/PR
+├── ci.yml       # Test + build on push/PR (ubuntu-latest)
 └── deploy.yml   # Test -> rsync -> docker build -> health check -> Matrix notify
 ```
 
 **rsync excludes**: `node_modules`, `.git`, `dist`, `tests`, `test-results`, `.astro`, `.env`
+
+**Known issue**: Gitea runner on cloudforest-basilisk occasionally goes offline, leaving runs in "queued" status. Use manual deploy as fallback.
 
 ### Secrets (Gitea)
 
@@ -46,7 +54,7 @@ Push to `main` triggers: test -> deploy.
 
 ### Server .env
 
-On the server at `/opt/arcnode-blog/.env` (not in git, not rsynced):
+On the server at `/opt/arcnode-blog/.env` (not in git, excluded from rsync):
 
 ```
 PDS_APP_PASSWORD=<app password from arcnode.xyz>
