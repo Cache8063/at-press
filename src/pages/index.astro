@@ -31,7 +31,7 @@ const entries = await getBlogEntries();
   {entries.length === 0 ? (
     <p class="text-muted italic font-serif fade-in-delay">No entries yet.</p>
   ) : (
-    <div class="space-y-1 fade-in-delay">
+    <div class="divide-y divide-border/40 fade-in-delay">
       {entries.map((entry) => (
         <article>
           <a href={`/${entry.rkey}`} class="group block py-4 sm:py-5 -mx-3 sm:-mx-4 px-3 sm:px-4 rounded-lg hover:bg-paper-raised transition-all border-l-2 border-transparent hover:border-accent">
