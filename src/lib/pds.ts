@@ -1,4 +1,4 @@
-import { PDS_URL, DID, HANDLE, BLOG_COLLECTION } from "./constants";
+import { PDS_URL, DID, HANDLE, BLOG_COLLECTION, ABOUT_COLLECTION, ABOUT_RKEY } from "./constants";
 
 const RKEY_REGEX = /^[a-zA-Z0-9._~-]{1,512}$/;
 
@@ -339,6 +339,45 @@ export async function getRawBlogEntry(
   } catch {
     return null;
   }
+}
+
+// --- About page content ---
+
+const ABOUT_TTL = 3600_000; // 1 hour
+let aboutCache: CacheEntry<string> | null = null;
+
+const DEFAULT_ABOUT = `Writing about the things I build, break, and think about — mostly around self-hosting, the AT Protocol, and whatever side project has my attention.
+
+This blog runs on [AT Protocol](https://atproto.com). Every post is an atproto record stored on my personal PDS at [arcnode.xyz](https://arcnode.xyz), rendered here with Astro. No database, no CMS — just protocol-native content.
+
+I'm a consultant by trade, a developer by habit. Currently building [ConsultPitch](https://consultpitch.com) and running my own infrastructure on Hetzner and Proxmox.
+
+Houston, TX`;
+
+export async function getAbout(): Promise<string> {
+  if (isFresh(aboutCache)) return aboutCache.data;
+
+  try {
+    const res = await fetch(
+      `${PDS_URL}/xrpc/com.atproto.repo.getRecord?repo=${DID}&collection=${ABOUT_COLLECTION}&rkey=${ABOUT_RKEY}`
+    );
+
+    if (!res.ok) {
+      return aboutCache?.data ?? DEFAULT_ABOUT;
+    }
+
+    const data = (await res.json()) as { value: Record<string, unknown> };
+    const content = (data.value.content as string) || DEFAULT_ABOUT;
+
+    aboutCache = { data: content, expiresAt: Date.now() + ABOUT_TTL };
+    return content;
+  } catch {
+    return aboutCache?.data ?? DEFAULT_ABOUT;
+  }
+}
+
+export function invalidateAbout(): void {
+  aboutCache = null;
 }
 
 // Re-export constants for backward compatibility

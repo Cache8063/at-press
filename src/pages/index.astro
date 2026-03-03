@@ -1,11 +1,22 @@
 ---
 import Base from "../layouts/Base.astro";
-import { getBlogEntries, getProfile } from "../lib/pds";
+import { getBlogEntries, getProfile, getAbout } from "../lib/pds";
 import { HANDLE } from "../lib/constants";
+import { isOwner } from "../lib/auth";
 import { formatDate, excerpt } from "../lib/utils";
+import { marked } from "marked";
+import DOMPurify from "isomorphic-dompurify";
 
 const profile = await getProfile();
 const entries = await getBlogEntries();
+const aboutRaw = await getAbout();
+
+const aboutHtml = DOMPurify.sanitize(await marked.parse(aboutRaw), {
+  ADD_ATTR: ["target"],
+});
+
+const sessionDid = Astro.cookies.get("session_did")?.value;
+const isAuthor = sessionDid ? isOwner(sessionDid) : false;
 ---
 
 <Base title="bkb — writing" description={profile.description || "Writing by bkb on the AT Protocol"} maxWidth="max-w-4xl">
@@ -90,28 +101,38 @@ const entries = await getBlogEntries();
     <div class="about-panel">
       <div class="flex items-start justify-between mb-6">
         <h2 class="font-serif text-xl font-bold text-ink-bright">About</h2>
-        <button id="about-close" class="text-muted hover:text-ink transition-colors cursor-pointer text-lg leading-none">&times;</button>
+        <div class="flex items-center gap-3">
+          {isAuthor && (
+            <button id="about-edit-btn" class="text-xs font-mono text-muted hover:text-accent transition-colors cursor-pointer">
+              edit
+            </button>
+          )}
+          <button id="about-close" class="text-muted hover:text-ink transition-colors cursor-pointer text-lg leading-none">&times;</button>
+        </div>
       </div>
-      <div class="font-serif text-ink leading-relaxed space-y-4">
-        <p>
-          Writing about the things I build, break, and think about — mostly around
-          self-hosting, the AT Protocol, and whatever side project has my attention.
-        </p>
-        <p>
-          This blog runs on <a href="https://atproto.com" target="_blank" rel="noopener" class="text-accent hover:text-accent-light transition-colors underline underline-offset-2">AT Protocol</a>.
-          Every post is an atproto record stored on my personal PDS at
-          <a href="https://arcnode.xyz" target="_blank" rel="noopener" class="text-accent hover:text-accent-light transition-colors underline underline-offset-2">arcnode.xyz</a>,
-          rendered here with Astro. No database, no CMS — just protocol-native content.
-        </p>
-        <p>
-          I'm a consultant by trade, a developer by habit. Currently building
-          <a href="https://consultpitch.com" target="_blank" rel="noopener" class="text-accent hover:text-accent-light transition-colors underline underline-offset-2">ConsultPitch</a>
-          and running my own infrastructure on Hetzner and Proxmox.
-        </p>
-        <p class="text-sm text-muted">
-          Houston, TX
-        </p>
-      </div>
+      <!-- View mode -->
+      <div id="about-view" class="prose-about font-serif text-ink leading-relaxed" set:html={aboutHtml} />
+      <!-- Edit mode (owner only) -->
+      {isAuthor && (
+        <div id="about-edit" class="hidden">
+          <textarea
+            id="about-textarea"
+            class="w-full h-64 bg-paper-dim border border-border rounded-lg p-3 font-serif text-ink text-sm leading-relaxed resize-y focus:outline-none focus:border-accent"
+            placeholder="Write your about section (markdown supported)..."
+          >{aboutRaw}</textarea>
+          <div class="flex items-center justify-between mt-3">
+            <p class="text-xs text-muted font-mono">markdown supported</p>
+            <div class="flex gap-2">
+              <button id="about-cancel" class="text-sm text-muted hover:text-ink transition-colors cursor-pointer px-3 py-1">
+                cancel
+              </button>
+              <button id="about-save" class="text-sm text-accent hover:text-accent-light transition-colors cursor-pointer px-3 py-1 border border-accent/30 rounded">
+                save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   </div>
 </Base>
@@ -126,6 +147,13 @@ const entries = await getBlogEntries();
     const closeBtn = document.getElementById("about-close");
     const backdrop = modal?.querySelector(".about-backdrop");
 
+    const viewEl = document.getElementById("about-view");
+    const editEl = document.getElementById("about-edit");
+    const editBtn = document.getElementById("about-edit-btn");
+    const textarea = document.getElementById("about-textarea") as HTMLTextAreaElement | null;
+    const saveBtn = document.getElementById("about-save");
+    const cancelBtn = document.getElementById("about-cancel");
+
     if (!modal) return;
 
     function open() {
@@ -136,6 +164,20 @@ const entries = await getBlogEntries();
     function close() {
       modal!.classList.remove("is-open");
       modal!.setAttribute("aria-hidden", "true");
+      showView();
+    }
+
+    function showView() {
+      viewEl?.classList.remove("hidden");
+      editEl?.classList.add("hidden");
+      if (editBtn) editBtn.textContent = "edit";
+    }
+
+    function showEdit() {
+      viewEl?.classList.add("hidden");
+      editEl?.classList.remove("hidden");
+      if (editBtn) editBtn.textContent = "viewing";
+      textarea?.focus();
     }
 
     triggers.forEach((btn) => btn?.addEventListener("click", open));
@@ -144,6 +186,52 @@ const entries = await getBlogEntries();
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && modal!.classList.contains("is-open")) close();
+    });
+
+    // Edit toggle
+    editBtn?.addEventListener("click", () => {
+      if (editEl?.classList.contains("hidden")) {
+        showEdit();
+      } else {
+        showView();
+      }
+    });
+
+    cancelBtn?.addEventListener("click", showView);
+
+    // Save
+    saveBtn?.addEventListener("click", async () => {
+      if (!textarea) return;
+
+      const content = textarea.value.trim();
+      if (!content) {
+        alert("About content cannot be empty.");
+        return;
+      }
+
+      saveBtn.textContent = "saving...";
+      (saveBtn as HTMLButtonElement).disabled = true;
+
+      try {
+        const res = await fetch("/api/about", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          window.location.reload();
+        } else {
+          alert(data.error || "Save failed");
+          saveBtn.textContent = "save";
+          (saveBtn as HTMLButtonElement).disabled = false;
+        }
+      } catch {
+        alert("Network error");
+        saveBtn.textContent = "save";
+        (saveBtn as HTMLButtonElement).disabled = false;
+      }
     });
   }
 
