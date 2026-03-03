@@ -1,9 +1,7 @@
 import type { APIRoute } from "astro";
 import { checkOrigin, checkAuth, parseJsonBody, createPdsSession } from "../../lib/api";
 import { invalidateAbout } from "../../lib/pds";
-import { PDS_URL, DID, ABOUT_COLLECTION, ABOUT_RKEY } from "../../lib/constants";
-
-const MAX_CONTENT_LENGTH = 5_000;
+import { PDS_URL, DID, ABOUT_COLLECTION, ABOUT_RKEY, MAX_ABOUT_LENGTH } from "../../lib/constants";
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   const originErr = checkOrigin(request);
@@ -17,9 +15,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   const content = typeof body.content === "string" ? body.content.trim() : "";
 
-  if (!content || content.length > MAX_CONTENT_LENGTH) {
+  if (!content || content.length > MAX_ABOUT_LENGTH) {
     return new Response(
-      JSON.stringify({ error: `Content is required and must be under ${MAX_CONTENT_LENGTH} characters` }),
+      JSON.stringify({ error: `Content is required and must be under ${MAX_ABOUT_LENGTH} characters` }),
       { status: 400 }
     );
   }

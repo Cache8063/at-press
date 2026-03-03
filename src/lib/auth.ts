@@ -5,7 +5,7 @@ const GATEWAY_URL =
 const ATAUTH_PUBLIC_URL =
   process.env.ATAUTH_PUBLIC_URL || "https://apricot.workingtitle.zip";
 
-export interface ProxyUser {
+interface ProxyUser {
   did: string;
   handle: string;
 }
@@ -47,5 +47,3 @@ export async function verifyProxyTicket(
 export function isOwner(did: string): boolean {
   return did === DID;
 }
-
-export { GATEWAY_URL, ATAUTH_PUBLIC_URL };

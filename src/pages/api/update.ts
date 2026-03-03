@@ -2,10 +2,7 @@ import type { APIRoute } from "astro";
 import { checkOrigin, checkAuth, parseJsonBody, createPdsSession } from "../../lib/api";
 import { isValidRkey, invalidateEntry, invalidateCache } from "../../lib/pds";
 import { getDraft, saveDraft, deleteDraft } from "../../lib/drafts";
-import { PDS_URL, DID, BLOG_COLLECTION } from "../../lib/constants";
-
-const MAX_TITLE_LENGTH = 300;
-const MAX_CONTENT_LENGTH = 100_000;
+import { PDS_URL, DID, BLOG_COLLECTION, MAX_TITLE_LENGTH, MAX_CONTENT_LENGTH } from "../../lib/constants";
 const VALID_VISIBILITY = ["public", "author"];
 
 export const POST: APIRoute = async ({ request, cookies }) => {

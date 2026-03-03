@@ -669,7 +669,7 @@ describe("pds", () => {
 
   describe("blob parsing", () => {
     const validBlob = {
-      $type: "blob",
+      $type: "blob" as const,
       ref: { $link: "bafkreitest123" },
       mimeType: "image/png",
       size: 12345,

@@ -1,9 +1,7 @@
 import type { APIRoute } from "astro";
 import { checkOrigin, checkAuth, createPdsSession } from "../../lib/api";
 import { blobUrl } from "../../lib/pds";
-import { PDS_URL, DID } from "../../lib/constants";
-
-const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+import { PDS_URL, DID, MAX_IMAGE_SIZE } from "../../lib/constants";
 const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 export const POST: APIRoute = async ({ request, cookies }) => {
@@ -39,7 +37,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     );
   }
 
-  if (file.size > MAX_SIZE) {
+  if (file.size > MAX_IMAGE_SIZE) {
     return new Response(
       JSON.stringify({ error: "Image must be under 5 MB" }),
       { status: 400 }

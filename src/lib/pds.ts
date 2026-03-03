@@ -1,4 +1,4 @@
-import { PDS_URL, DID, HANDLE, BLOG_COLLECTION, ABOUT_COLLECTION, ABOUT_RKEY } from "./constants";
+import { PDS_URL, DID, HANDLE, BLOG_COLLECTION, ABOUT_COLLECTION, ABOUT_RKEY, PROFILE_TTL, ENTRIES_TTL, ENTRY_TTL, MAX_ENTRY_CACHE, ABOUT_TTL } from "./constants";
 
 const RKEY_REGEX = /^[a-zA-Z0-9._~-]{1,512}$/;
 
@@ -47,11 +47,6 @@ interface CacheEntry<T> {
   data: T;
   expiresAt: number;
 }
-
-const PROFILE_TTL = 3600_000; // 1 hour
-const ENTRIES_TTL = 300_000; // 5 minutes
-const ENTRY_TTL = 600_000; // 10 minutes
-const MAX_ENTRY_CACHE = 200;
 
 let profileCache: CacheEntry<AuthorProfile> | null = null;
 let entriesCache: CacheEntry<BlogEntry[]> | null = null;
@@ -107,6 +102,7 @@ const FALLBACK_PROFILE: AuthorProfile = {
 // --- Data fetching ---
 
 export async function getProfile(): Promise<AuthorProfile> {
+  const stale = profileCache;
   if (isFresh(profileCache)) return profileCache.data;
 
   try {
@@ -115,13 +111,13 @@ export async function getProfile(): Promise<AuthorProfile> {
     );
     if (!res.ok) {
       console.error("PDS profile fetch failed:", res.status);
-      return profileCache?.data ?? FALLBACK_PROFILE;
+      return stale?.data ?? FALLBACK_PROFILE;
     }
     const data = (await res.json()) as ListRecordsResponse;
     const record = data.records[0]?.value as Record<string, unknown> | undefined;
 
     if (!record) {
-      return profileCache?.data ?? FALLBACK_PROFILE;
+      return stale?.data ?? FALLBACK_PROFILE;
     }
 
     const avatar = record.avatar as { ref?: { $link?: string } } | undefined;
@@ -138,11 +134,12 @@ export async function getProfile(): Promise<AuthorProfile> {
     return profile;
   } catch (err) {
     console.error("Failed to fetch profile:", err);
-    return profileCache?.data ?? FALLBACK_PROFILE;
+    return stale?.data ?? FALLBACK_PROFILE;
   }
 }
 
 export async function getBlogEntries(): Promise<BlogEntry[]> {
+  const staleEntries = entriesCache;
   if (isFresh(entriesCache)) return entriesCache.data;
 
   const entries: BlogEntry[] = [];
@@ -187,7 +184,7 @@ export async function getBlogEntries(): Promise<BlogEntry[]> {
     } while (cursor && entries.length < 500);
   } catch (err) {
     console.error("Failed to fetch blog entries:", err);
-    if (entriesCache?.data) return entriesCache.data;
+    if (staleEntries?.data) return staleEntries.data;
   }
 
   entries.sort(
@@ -204,6 +201,7 @@ export async function getBlogEntries(): Promise<BlogEntry[]> {
 
 export async function getBlogEntry(rkey: string): Promise<BlogEntry | null> {
   const cached = entryCache.get(rkey);
+  const staleData = cached?.data;
   if (isFresh(cached)) return cached.data;
 
   try {
@@ -216,7 +214,7 @@ export async function getBlogEntry(rkey: string): Promise<BlogEntry | null> {
         entryCache.delete(rkey); // Deleted post — evict from cache
         return null;
       }
-      return cached?.data ?? null; // Non-404 error — serve stale if available
+      return staleData ?? null; // Non-404 error — serve stale if available
     }
 
     const data = (await res.json()) as {
@@ -252,7 +250,7 @@ export async function getBlogEntry(rkey: string): Promise<BlogEntry | null> {
     entryCache.set(rkey, { data: entry, expiresAt: Date.now() + ENTRY_TTL });
     return entry;
   } catch {
-    return cached?.data ?? null; // Network error — serve stale if available
+    return staleData ?? null; // Network error — serve stale if available
   }
 }
 
@@ -304,7 +302,6 @@ export async function getRawBlogEntry(
 
 // --- About page content ---
 
-const ABOUT_TTL = 3600_000; // 1 hour
 let aboutCache: CacheEntry<string> | null = null;
 
 const DEFAULT_ABOUT = `Writing about the things I build, break, and think about — mostly around self-hosting, the AT Protocol, and whatever side project has my attention.
@@ -316,6 +313,7 @@ I'm a consultant by trade, a developer by habit. Currently building [ConsultPitc
 Houston, TX`;
 
 export async function getAbout(): Promise<string> {
+  const staleAbout = aboutCache;
   if (isFresh(aboutCache)) return aboutCache.data;
 
   try {
@@ -324,7 +322,7 @@ export async function getAbout(): Promise<string> {
     );
 
     if (!res.ok) {
-      return aboutCache?.data ?? DEFAULT_ABOUT;
+      return staleAbout?.data ?? DEFAULT_ABOUT;
     }
 
     const data = (await res.json()) as { value: Record<string, unknown> };
@@ -333,7 +331,7 @@ export async function getAbout(): Promise<string> {
     aboutCache = { data: content, expiresAt: Date.now() + ABOUT_TTL };
     return content;
   } catch {
-    return aboutCache?.data ?? DEFAULT_ABOUT;
+    return staleAbout?.data ?? DEFAULT_ABOUT;
   }
 }
 
