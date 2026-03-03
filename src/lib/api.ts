@@ -1,6 +1,6 @@
 import type { AstroCookies } from "astro";
 import { isOwner } from "./auth";
-import { BLOG_URL, PDS_URL, DID } from "./constants";
+import { BLOG_URL, PDS_URL, DID, SESSION_DID_COOKIE } from "./constants";
 
 export function checkOrigin(request: Request): Response | null {
   const origin = request.headers.get("origin");
@@ -11,7 +11,7 @@ export function checkOrigin(request: Request): Response | null {
 }
 
 export function checkAuth(cookies: AstroCookies): Response | null {
-  const sessionDid = cookies.get("session_did")?.value;
+  const sessionDid = cookies.get(SESSION_DID_COOKIE)?.value;
   if (!sessionDid || !isOwner(sessionDid)) {
     return new Response(JSON.stringify({ error: "Not authorized" }), { status: 403 });
   }

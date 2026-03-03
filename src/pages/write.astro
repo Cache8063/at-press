@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import { verifyProxyTicket, isOwner, getLoginUrl } from "../lib/auth";
 import { getDraftEntries, getRawBlogEntry, type BlogEntry } from "../lib/pds";
 import { formatDate } from "../lib/utils";
+import { SESSION_DID_COOKIE, SESSION_HANDLE_COOKIE, SESSION_MAX_AGE } from "../lib/constants";
 
 let authed = false;
 let handle = "";
@@ -12,27 +13,27 @@ const ticket = Astro.url.searchParams.get("_atauth_ticket");
 if (ticket) {
   const user = await verifyProxyTicket(ticket);
   if (user && isOwner(user.did)) {
-    Astro.cookies.set("session_did", user.did, {
+    Astro.cookies.set(SESSION_DID_COOKIE, user.did, {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
       path: "/",
-      maxAge: 86400 * 7,
+      maxAge: SESSION_MAX_AGE,
     });
-    Astro.cookies.set("session_handle", user.handle, {
+    Astro.cookies.set(SESSION_HANDLE_COOKIE, user.handle, {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
       path: "/",
-      maxAge: 86400 * 7,
+      maxAge: SESSION_MAX_AGE,
     });
     return Astro.redirect("/write");
   }
 }
 
 // Check existing session cookie
-const sessionDid = Astro.cookies.get("session_did")?.value;
-const sessionHandle = Astro.cookies.get("session_handle")?.value;
+const sessionDid = Astro.cookies.get(SESSION_DID_COOKIE)?.value;
+const sessionHandle = Astro.cookies.get(SESSION_HANDLE_COOKIE)?.value;
 if (sessionDid && sessionHandle && isOwner(sessionDid)) {
   authed = true;
   handle = sessionHandle;

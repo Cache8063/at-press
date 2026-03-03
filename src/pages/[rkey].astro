@@ -1,7 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import { getBlogEntry, getRawBlogEntry, isValidRkey } from "../lib/pds";
-import { HANDLE, PDS_URL, DID, BLOG_COLLECTION } from "../lib/constants";
+import { HANDLE, PDS_URL, DID, BLOG_COLLECTION, SESSION_DID_COOKIE } from "../lib/constants";
 import { formatDate } from "../lib/utils";
 import { isOwner } from "../lib/auth";
 import { marked } from "marked";
@@ -21,7 +21,7 @@ if (!rkey || !isValidRkey(rkey)) {
 }
 
 // Auth check before fetching — owner can see drafts
-const sessionDid = Astro.cookies.get("session_did")?.value;
+const sessionDid = Astro.cookies.get(SESSION_DID_COOKIE)?.value;
 const isAuthor = sessionDid ? isOwner(sessionDid) : false;
 
 const entry = isAuthor

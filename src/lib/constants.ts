@@ -12,6 +12,16 @@ export const MAX_CONTENT_LENGTH = 100_000;
 export const MAX_ABOUT_LENGTH = 5_000;
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
 
+// Session
+export const SESSION_DID_COOKIE = "session_did";
+export const SESSION_HANDLE_COOKIE = "session_handle";
+export const SESSION_MAX_AGE = 86400 * 7; // 7 days
+
+// RSS
+export const RSS_MAX_ITEMS = 20;
+export const RSS_EXCERPT_LENGTH = 300;
+export const DEFAULT_EXCERPT_LENGTH = 160;
+
 // Cache TTLs (milliseconds)
 export const PROFILE_TTL = 3600_000; // 1 hour
 export const ENTRIES_TTL = 300_000; // 5 minutes

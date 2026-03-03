@@ -25,7 +25,7 @@ export interface BlogEntry {
   blobs?: AtBlob[];
 }
 
-export interface AuthorProfile {
+interface AuthorProfile {
   displayName: string;
   description: string;
   avatarUrl: string | null;
@@ -249,7 +249,8 @@ export async function getBlogEntry(rkey: string): Promise<BlogEntry | null> {
 
     entryCache.set(rkey, { data: entry, expiresAt: Date.now() + ENTRY_TTL });
     return entry;
-  } catch {
+  } catch (err) {
+    console.error("Failed to fetch blog entry:", err);
     return staleData ?? null; // Network error — serve stale if available
   }
 }
@@ -295,7 +296,8 @@ export async function getRawBlogEntry(
       theme: val.theme as string | undefined,
       blobs: parseBlobsFromValue(val),
     };
-  } catch {
+  } catch (err) {
+    console.error("Failed to fetch raw blog entry:", err);
     return null;
   }
 }
@@ -330,7 +332,8 @@ export async function getAbout(): Promise<string> {
 
     aboutCache = { data: content, expiresAt: Date.now() + ABOUT_TTL };
     return content;
-  } catch {
+  } catch (err) {
+    console.error("Failed to fetch about:", err);
     return staleAbout?.data ?? DEFAULT_ABOUT;
   }
 }

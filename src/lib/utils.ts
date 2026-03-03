@@ -8,7 +8,9 @@ export function formatDate(iso: string, opts?: { weekday?: boolean }): string {
   return new Date(iso).toLocaleDateString("en-US", options);
 }
 
-export function excerpt(content: string, maxLen = 160): string {
+import { DEFAULT_EXCERPT_LENGTH } from "./constants";
+
+export function excerpt(content: string, maxLen = DEFAULT_EXCERPT_LENGTH): string {
   const plain = content
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/\*{1,2}([^*]+)\*{1,2}/g, "$1")

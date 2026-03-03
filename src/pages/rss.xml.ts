@@ -1,17 +1,23 @@
 import type { APIRoute } from "astro";
 import { getBlogEntries, getProfile } from "../lib/pds";
-import { BLOG_URL, HANDLE } from "../lib/constants";
+import { BLOG_URL, HANDLE, RSS_MAX_ITEMS, RSS_EXCERPT_LENGTH } from "../lib/constants";
 import { escapeXml, excerpt } from "../lib/utils";
 
 export const GET: APIRoute = async () => {
-  const [entries, profile] = await Promise.all([
-    getBlogEntries(),
-    getProfile(),
-  ]);
+  let entries, profile;
+  try {
+    [entries, profile] = await Promise.all([
+      getBlogEntries(),
+      getProfile(),
+    ]);
+  } catch (err) {
+    console.error("RSS feed fetch failed:", err);
+    return new Response("RSS feed temporarily unavailable", { status: 503 });
+  }
 
-  const items = entries.slice(0, 20).map((entry) => {
+  const items = entries.slice(0, RSS_MAX_ITEMS).map((entry) => {
     const pubDate = new Date(entry.createdAt).toUTCString();
-    const desc = excerpt(entry.content, 300);
+    const desc = excerpt(entry.content, RSS_EXCERPT_LENGTH);
 
     return `    <item>
       <title>${escapeXml(entry.title)}</title>
