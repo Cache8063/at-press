@@ -6,7 +6,7 @@ Personal blog built on Astro SSR with AT Protocol (Bluesky) as the content backe
 
 - **Framework**: Astro 5 (SSR, Node adapter)
 - **Styling**: Tailwind CSS 4 with 5 themes (parchment, midnight, moss, slate, rose)
-- **Content**: AT Protocol PDS via WhiteWind blog collection
+- **Content**: AT Protocol PDS (published) + SQLite (drafts)
 - **Auth**: ATAuth proxy (Bluesky identity)
 - **Markdown**: marked + DOMPurify
 - **Testing**: Vitest (unit) + Playwright (E2E)
@@ -17,7 +17,7 @@ Personal blog built on Astro SSR with AT Protocol (Bluesky) as the content backe
 - Sidebar profile with AT Protocol identity
 - Editable about section (markdown, stored on PDS as `xyz.arcnode.blog.about`)
 - 5 color themes with localStorage persistence
-- Draft/publish workflow with visibility toggle
+- Private drafts (SQLite) with publish/unpublish transitions to PDS
 - Image uploads with magic byte validation
 - RSS feed
 - Responsive layout (sidebar collapses on mobile)
@@ -39,11 +39,12 @@ npm run dev
 | `PDS_APP_PASSWORD` | Yes | AT Protocol app password |
 | `ATAUTH_GATEWAY_URL` | No | ATAuth gateway (default: `https://apricot.workingtitle.zip`) |
 | `ATAUTH_PUBLIC_URL` | No | ATAuth public URL for redirects |
+| `DRAFTS_DB_PATH` | No | SQLite path for drafts (default: `/data/drafts.db`) |
 
 ## Testing
 
 ```bash
-npm test          # Unit tests (85 tests)
+npm test          # Unit tests (99 tests)
 npm run test:e2e  # E2E tests (against production)
 ```
 
@@ -51,8 +52,8 @@ npm run test:e2e  # E2E tests (against production)
 
 Push to `main` triggers automated deploy via Gitea Actions:
 1. Run tests + build (ubuntu-latest)
-2. rsync to server (excludes .env, node_modules, .git)
-3. Docker rebuild + restart
+2. rsync to server (excludes .env, node_modules, .git, *.db)
+3. Docker rebuild + restart (SQLite drafts persist via `blog-data` volume)
 4. Health check
 5. Matrix notification
 

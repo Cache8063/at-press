@@ -7,7 +7,7 @@ Astro SSR blog on AT Protocol. Deployed on pds-hetzner via Docker.
 ```bash
 npm run dev        # localhost:4321
 npm run build      # Production build
-npm run test       # Vitest unit tests
+npm run test       # Vitest unit tests (99 tests)
 npm run test:e2e   # Playwright E2E
 npm start          # Run built server (port 4000)
 ```
@@ -15,28 +15,30 @@ npm start          # Run built server (port 4000)
 ## Architecture
 
 ```
-Astro SSR → AT Protocol PDS (arcnode.xyz) → ATAuth (apricot.workingtitle.zip)
+Published posts → AT Protocol PDS (arcnode.xyz)
+Drafts          → Local SQLite (/data/drafts.db, Docker volume)
+Auth            → ATAuth (apricot.workingtitle.zip)
 ```
 
 ## Key Directories
 
 ```
-src/lib/           # Core: api, auth, pds, constants, utils
+src/lib/           # Core: api, auth, pds, drafts, constants, utils
 src/pages/         # Routes: index (sidebar+about), [rkey], write, rss.xml
 src/pages/api/     # API: publish, update, delete, upload-image, about, logout
 src/layouts/       # Base.astro (themes, nav, maxWidth prop)
 src/styles/        # global.css (Tailwind + 5 themes + about modal)
-tests/unit/        # Vitest tests
+tests/unit/        # Vitest tests (drafts, pds, auth, utils, rss)
 tests/e2e/         # Playwright tests
 ```
 
-## Auth Flow
+## Draft/Publish Flow
 
-1. User clicks "Sign in" on /write
-2. Redirects to ATAuth proxy (`ATAUTH_PUBLIC_URL`)
-3. Returns with `_atauth_ticket` query param
-4. Server verifies ticket against ATAuth gateway
-5. Sets `session_did` cookie (httpOnly, secure, 7 days)
+Drafts are private (SQLite). Published posts are public (PDS). Transitions handled by `update.ts`:
+- Draft → Draft: SQLite only
+- Draft → Publish: PDS putRecord + SQLite delete
+- Publish → Unpublish: SQLite save + PDS deleteRecord
+- Publish → Publish: PDS putRecord only
 
 ## Security
 
@@ -44,7 +46,7 @@ tests/e2e/         # Playwright tests
 - DOMPurify on all markdown rendering
 - Magic byte validation on image uploads
 - CSP via middleware
-- Handle format validation
+- Drafts stored in local SQLite (not publicly readable PDS)
 
 ## Environment
 
@@ -54,6 +56,6 @@ See `.env.example`. Only `PDS_APP_PASSWORD` is required.
 
 | Skill | Use When |
 |-------|----------|
-| atproto | PDS, blobs, collections, record schemas, about section |
+| atproto | PDS, blobs, collections, record schemas, about section, drafts |
 | testing | Writing tests, running suites, debugging failures |
-| deployment | Docker, CI/CD, server ops, manual deploy |
+| deployment | Docker, CI/CD, volumes, server ops, manual deploy |

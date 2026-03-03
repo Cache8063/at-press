@@ -20,9 +20,10 @@ npm test -- tests/unit/pds.test.ts
 
 ```
 tests/
-├── unit/                # Vitest (jsdom/node)
+├── unit/                # Vitest (jsdom/node) — 99 tests
 │   ├── auth.test.ts     # ATAuth login, ticket verify, isOwner
-│   ├── pds.test.ts      # PDS fetching, caching, blobs, pagination
+│   ├── drafts.test.ts   # SQLite CRUD, rkey generation, upsert, blobs
+│   ├── pds.test.ts      # PDS fetching, caching, blobs, pagination, draft integration
 │   ├── utils.test.ts    # formatDate, excerpt, escapeXml
 │   └── rss.test.ts      # RSS XML escaping
 └── e2e/                 # Playwright (chromium)
@@ -66,6 +67,27 @@ mockFetch.mockResolvedValueOnce({
   ok: true,
   json: async () => ({ records: [] }),
 });
+```
+
+### Mocking SQLite drafts (in pds.test.ts)
+
+```typescript
+vi.mock("../../src/lib/drafts", () => ({
+  listDrafts: vi.fn(() => []),
+  getDraft: vi.fn(() => null),
+}));
+```
+
+### SQLite in-memory tests (drafts.test.ts)
+
+```typescript
+// Set BEFORE imports (ES module hoisting)
+process.env.DRAFTS_DB_PATH = ":memory:";
+
+import { saveDraft, getDraft, closeDb } from "../../src/lib/drafts";
+
+beforeEach(() => closeDb());  // Fresh DB each test
+afterEach(() => closeDb());
 ```
 
 ### CI/CD

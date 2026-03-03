@@ -20,7 +20,7 @@ description: "Deploying the blog, Docker, CI/CD, and server operations."
 rsync -az --delete \
   --exclude node_modules --exclude .git --exclude dist \
   --exclude tests --exclude test-results --exclude .astro \
-  --exclude .env \
+  --exclude .env --exclude '*.db' --exclude '*.db-wal' --exclude '*.db-shm' \
   -e "ssh -o StrictHostKeyChecking=no" \
   ./ root@pds-hetzner:/opt/arcnode-blog/
 
@@ -38,7 +38,7 @@ Push to `main` triggers both workflows:
 └── deploy.yml   # Test -> rsync -> docker build -> health check -> Matrix notify
 ```
 
-**rsync excludes**: `node_modules`, `.git`, `dist`, `tests`, `test-results`, `.astro`, `.env`
+**rsync excludes**: `node_modules`, `.git`, `dist`, `tests`, `test-results`, `.astro`, `.env`, `*.db`, `*.db-wal`, `*.db-shm`
 
 **Known issue**: Gitea runner on cloudforest-basilisk occasionally goes offline, leaving runs in "queued" status. Use manual deploy as fallback.
 
@@ -72,6 +72,14 @@ services:
       - HOST=0.0.0.0
       - PORT=4000
       - ATAUTH_GATEWAY_URL=http://172.17.0.1:3100
+      - DRAFTS_DB_PATH=/data/drafts.db
+    volumes:
+      - blog-data:/data
+volumes:
+  blog-data:
 ```
 
-The `ATAUTH_GATEWAY_URL` Docker override routes to the atauth container on the same host via Docker bridge.
+- `ATAUTH_GATEWAY_URL` routes to atauth container via Docker bridge
+- `blog-data` named volume persists SQLite drafts across container rebuilds
+- Dockerfile creates `/data` dir owned by `blog` user
+- `better-sqlite3` native module compiled in build stage (needs python3, make, g++)

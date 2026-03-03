@@ -1,6 +1,6 @@
 ---
 name: atproto
-description: "AT Protocol integration. Use when working with PDS, blobs, collections, or Bluesky data."
+description: "AT Protocol integration. Use when working with PDS, blobs, collections, drafts, or Bluesky data."
 ---
 
 ## AT Protocol
@@ -51,9 +51,34 @@ POST ${PDS_URL}/xrpc/com.atproto.server.createSession
 // Returns: { accessJwt, refreshJwt, did, handle }
 ```
 
+### Draft Storage (SQLite)
+
+Drafts are stored in local SQLite (not PDS) for privacy. PDS `listRecords` is public — drafts on PDS are readable by anyone.
+
+```typescript
+// src/lib/drafts.ts
+listDrafts()           // All drafts, newest first
+getDraft(rkey)         // Single draft or null
+saveDraft({ rkey?, title, content, createdAt?, blobs? })  // Upsert
+deleteDraft(rkey)      // Returns boolean
+generateRkey()         // nanoid(13)
+migratePdsDraftsToSqlite()  // One-time PDS → SQLite migration
+closeDb()              // For testing only
+```
+
+SQLite schema: `drafts` table (rkey PK, title, content, created_at, updated_at, blobs JSON) + `migrations_applied` table.
+
+DB path: `DRAFTS_DB_PATH` env var, default `/data/drafts.db`. Use `:memory:` for tests.
+
+**State transitions** (handled by `src/pages/api/update.ts`):
+- Draft → Draft: `saveDraft()` only
+- Draft → Publish: PDS `putRecord` + `deleteDraft()`
+- Publish → Unpublish: `saveDraft()` + PDS `deleteRecord`
+- Publish → Publish: PDS `putRecord` only
+
 ### Collections
 
-**Blog entries** (`com.whtwnd.blog.entry`):
+**Blog entries** (`com.whtwnd.blog.entry`) — only published posts on PDS:
 ```typescript
 {
   $type: "com.whtwnd.blog.entry",
