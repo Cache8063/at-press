@@ -20,33 +20,24 @@ Drafts          → Local SQLite (/data/drafts.db, Docker volume)
 Auth            → ATAuth (apricot.workingtitle.zip)
 ```
 
-## Key Directories
+## Key Files
 
 ```
-src/lib/           # Core: api, auth, pds, drafts, constants, utils
-src/pages/         # Routes: index (sidebar+about), [rkey], write, rss.xml
-src/pages/api/     # API: publish, update, delete, upload-image, about, logout
-src/layouts/       # Base.astro (themes, nav, maxWidth prop)
-src/styles/        # global.css (Tailwind + 5 themes + about modal)
-tests/unit/        # Vitest tests (drafts, pds, auth, utils, rss)
-tests/e2e/         # Playwright tests
+src/lib/constants.ts  # All shared constants: URLs, limits, cache TTLs
+src/lib/pds.ts        # PDS fetching, caching, blog entries
+src/lib/drafts.ts     # SQLite draft CRUD, migration
+src/lib/api.ts        # Auth helpers, session creation, request parsing
+src/lib/auth.ts       # ATAuth login/verify, owner check
+src/middleware.ts      # CSP headers, one-time migration trigger
+src/pages/api/        # publish, update, delete, upload-image, about, logout
 ```
 
-## Draft/Publish Flow
+## Key Patterns
 
-Drafts are private (SQLite). Published posts are public (PDS). Transitions handled by `update.ts`:
-- Draft → Draft: SQLite only
-- Draft → Publish: PDS putRecord + SQLite delete
-- Publish → Unpublish: SQLite save + PDS deleteRecord
-- Publish → Publish: PDS putRecord only
-
-## Security
-
-- Origin check on all API POSTs (`checkOrigin`)
-- DOMPurify on all markdown rendering
-- Magic byte validation on image uploads
-- CSP via middleware
-- Drafts stored in local SQLite (not publicly readable PDS)
+- Drafts in SQLite, published posts on PDS. See atproto skill for state transitions.
+- All content limits and cache TTLs centralized in `constants.ts`
+- CSP uses `PDS_URL` from constants (not hardcoded)
+- Stale cache served on network errors (graceful fallback)
 
 ## Environment
 

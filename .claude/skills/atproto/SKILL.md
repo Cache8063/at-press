@@ -5,10 +5,10 @@ description: "AT Protocol integration. Use when working with PDS, blobs, collect
 
 ## AT Protocol
 
-### Constants
+### Constants (`src/lib/constants.ts`)
 
 ```typescript
-// src/lib/constants.ts
+// Identity & URLs
 BLOG_URL         = "https://blog.arcnode.xyz"
 PDS_URL          = "https://arcnode.xyz"
 DID              = "did:plc:k23ujfuppr3hr4pxvtaz7jro"
@@ -16,6 +16,19 @@ HANDLE           = "bkb.arcnode.xyz"
 BLOG_COLLECTION  = "com.whtwnd.blog.entry"
 ABOUT_COLLECTION = "xyz.arcnode.blog.about"
 ABOUT_RKEY       = "self"
+
+// Content limits
+MAX_TITLE_LENGTH   = 300
+MAX_CONTENT_LENGTH = 100_000
+MAX_ABOUT_LENGTH   = 5_000
+MAX_IMAGE_SIZE     = 5 * 1024 * 1024  // 5 MB
+
+// Cache TTLs (ms)
+PROFILE_TTL      = 3600_000  // 1 hour
+ENTRIES_TTL      = 300_000   // 5 min
+ENTRY_TTL        = 600_000   // 10 min
+ABOUT_TTL        = 3600_000  // 1 hour
+MAX_ENTRY_CACHE  = 200
 ```
 
 ### PDS API Patterns
