@@ -1,6 +1,18 @@
 import { defineMiddleware } from "astro:middleware";
+import { migratePdsDraftsToSqlite } from "./lib/drafts";
+
+let migrated = false;
 
 export const onRequest = defineMiddleware(async (_context, next) => {
+  if (!migrated) {
+    migrated = true;
+    try {
+      await migratePdsDraftsToSqlite();
+    } catch (err) {
+      console.error("[migration] Failed:", err);
+    }
+  }
+
   const response = await next();
   response.headers.set(
     "Content-Security-Policy",

@@ -258,59 +258,20 @@ export async function getBlogEntry(rkey: string): Promise<BlogEntry | null> {
 
 // --- Draft / raw access (no cache, owner-only) ---
 
+import { listDrafts, getDraft } from "./drafts";
+
 export async function getDraftEntries(): Promise<BlogEntry[]> {
-  const entries: BlogEntry[] = [];
-  let cursor: string | undefined;
-
-  try {
-    do {
-      const params = new URLSearchParams({
-        repo: DID,
-        collection: BLOG_COLLECTION,
-        limit: "100",
-      });
-      if (cursor) params.set("cursor", cursor);
-
-      const res = await fetch(
-        `${PDS_URL}/xrpc/com.atproto.repo.listRecords?${params}`
-      );
-      if (!res.ok) break;
-      const data = (await res.json()) as ListRecordsResponse;
-
-      for (const record of data.records) {
-        const val = record.value as Record<string, unknown>;
-        if (val.visibility !== "author") continue;
-
-        entries.push({
-          uri: record.uri,
-          cid: record.cid,
-          rkey: extractRkey(record.uri),
-          title: (val.title as string) || "Untitled",
-          content: val.content as string,
-          createdAt: val.createdAt as string,
-          visibility: val.visibility as string,
-          theme: val.theme as string | undefined,
-          blobs: parseBlobsFromValue(val),
-        });
-      }
-
-      cursor = data.cursor;
-    } while (cursor && entries.length < 100);
-  } catch (err) {
-    console.error("Failed to fetch draft entries:", err);
-  }
-
-  entries.sort(
-    (a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-
-  return entries;
+  return listDrafts();
 }
 
 export async function getRawBlogEntry(
   rkey: string
 ): Promise<BlogEntry | null> {
+  // Check local SQLite drafts first
+  const draft = getDraft(rkey);
+  if (draft) return draft;
+
+  // Fall through to PDS for published entries
   try {
     const res = await fetch(
       `${PDS_URL}/xrpc/com.atproto.repo.getRecord?repo=${DID}&collection=${BLOG_COLLECTION}&rkey=${rkey}`

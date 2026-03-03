@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { checkOrigin, checkAuth, parseJsonBody, createPdsSession } from "../../lib/api";
 import { isValidRkey, invalidateEntry } from "../../lib/pds";
+import { getDraft, deleteDraft } from "../../lib/drafts";
 import { PDS_URL, DID, BLOG_COLLECTION } from "../../lib/constants";
 
 export const POST: APIRoute = async ({ request, cookies }) => {
@@ -19,6 +20,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return new Response(JSON.stringify({ error: "Invalid rkey" }), { status: 400 });
   }
 
+  // Check if this is a local draft
+  if (getDraft(rkey)) {
+    deleteDraft(rkey);
+    return new Response(JSON.stringify({ success: true }));
+  }
+
+  // Otherwise delete from PDS
   const [accessJwt, sessionErr] = await createPdsSession();
   if (sessionErr) return sessionErr;
 

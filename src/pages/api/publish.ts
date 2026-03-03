@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { checkOrigin, checkAuth, parseJsonBody, createPdsSession } from "../../lib/api";
 import { invalidateCache } from "../../lib/pds";
+import { saveDraft } from "../../lib/drafts";
 import { PDS_URL, DID, BLOG_COLLECTION } from "../../lib/constants";
 
 const MAX_TITLE_LENGTH = 300;
@@ -35,6 +36,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   const blobs = Array.isArray(body.blobs) ? body.blobs : [];
 
+  // Drafts go to local SQLite — never touch PDS
+  if (body.visibility === "author") {
+    const rkey = saveDraft({
+      title,
+      content,
+      blobs: blobs.length > 0 ? blobs : undefined,
+    });
+    return new Response(JSON.stringify({ success: true, rkey }));
+  }
+
+  // Published posts go to PDS
   const [accessJwt, sessionErr] = await createPdsSession();
   if (sessionErr) return sessionErr;
 
@@ -54,7 +66,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           title,
           content,
           createdAt: new Date().toISOString(),
-          visibility: body.visibility === "author" ? "author" : "public",
+          visibility: "public",
           ...(blobs.length > 0 && { blobs }),
         },
       }),

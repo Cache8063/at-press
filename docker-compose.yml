@@ -10,3 +10,9 @@ services:
       - HOST=0.0.0.0
       - PORT=4000
       - ATAUTH_GATEWAY_URL=http://172.17.0.1:3100
+      - DRAFTS_DB_PATH=/data/drafts.db
+    volumes:
+      - blog-data:/data
+
+volumes:
+  blog-data:

@@ -15,12 +15,14 @@
   "dependencies": {
     "@astrojs/node": "^9.1.0",
     "astro": "^5.7.0",
+    "better-sqlite3": "^12.6.2",
     "isomorphic-dompurify": "^3.0.0",
     "marked": "^17.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@tailwindcss/vite": "^4.1.0",
+    "@types/better-sqlite3": "^7.6.13",
     "tailwindcss": "^4.1.0",
     "vitest": "^4.0.18"
   }

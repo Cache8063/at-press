@@ -86,15 +86,19 @@ const entryData = {
           </a>
         </div>
         <div class="flex items-center gap-4 text-xs font-mono">
-          <a
-            href={`${PDS_URL}/xrpc/com.atproto.repo.getRecord?repo=${DID}&collection=${BLOG_COLLECTION}&rkey=${rkey}`}
-            target="_blank"
-            rel="noopener"
-            class="hover:text-ink transition-colors"
-          >
-            view record
-          </a>
-          <span class="text-border-light">|</span>
+          {!isDraft && (
+            <>
+              <a
+                href={`${PDS_URL}/xrpc/com.atproto.repo.getRecord?repo=${DID}&collection=${BLOG_COLLECTION}&rkey=${rkey}`}
+                target="_blank"
+                rel="noopener"
+                class="hover:text-ink transition-colors"
+              >
+                view record
+              </a>
+              <span class="text-border-light">|</span>
+            </>
+          )}
           <a href="/" class="hover:text-ink transition-colors">all posts</a>
           {isAuthor && (
             <>

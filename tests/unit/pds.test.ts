@@ -1,4 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+// Mock the drafts module before importing pds
+vi.mock("../../src/lib/drafts", () => ({
+  listDrafts: vi.fn(() => []),
+  getDraft: vi.fn(() => null),
+}));
+
+import { listDrafts, getDraft } from "../../src/lib/drafts";
 import { getProfile, getBlogEntries, getBlogEntry, getDraftEntries, getRawBlogEntry, isValidRkey, invalidateCache, invalidateEntry, blobUrl, HANDLE, DID, PDS_URL } from "../../src/lib/pds";
 
 function mockFetch(responses: Array<{ ok?: boolean; status?: number; body: unknown }>) {
@@ -548,125 +556,55 @@ describe("pds", () => {
   });
 
   describe("getDraftEntries", () => {
-    it("returns only author-visibility entries", async () => {
-      mockFetch([{
-        body: {
-          records: [
-            {
-              uri: `at://${DID}/com.whtwnd.blog.entry/pub`,
-              cid: "cid1",
-              value: {
-                title: "Public Post",
-                content: "C",
-                createdAt: "2025-01-01T00:00:00Z",
-                visibility: "public",
-              },
-            },
-            {
-              uri: `at://${DID}/com.whtwnd.blog.entry/draft1`,
-              cid: "cid2",
-              value: {
-                title: "My Draft",
-                content: "WIP",
-                createdAt: "2025-06-01T00:00:00Z",
-                visibility: "author",
-              },
-            },
-          ],
+    it("returns drafts from SQLite via listDrafts", async () => {
+      vi.mocked(listDrafts).mockReturnValueOnce([
+        {
+          uri: "",
+          cid: "",
+          rkey: "draft1",
+          title: "My Draft",
+          content: "WIP",
+          createdAt: "2025-06-01T00:00:00Z",
+          visibility: "author",
         },
-      }]);
+      ]);
 
       const drafts = await getDraftEntries();
       expect(drafts).toHaveLength(1);
       expect(drafts[0].title).toBe("My Draft");
       expect(drafts[0].visibility).toBe("author");
+      expect(listDrafts).toHaveBeenCalled();
     });
 
     it("returns empty array when no drafts exist", async () => {
-      mockFetch([{
-        body: {
-          records: [
-            {
-              uri: `at://${DID}/com.whtwnd.blog.entry/pub`,
-              cid: "cid1",
-              value: {
-                title: "Public",
-                content: "C",
-                createdAt: "2025-01-01T00:00:00Z",
-                visibility: "public",
-              },
-            },
-          ],
-        },
-      }]);
+      vi.mocked(listDrafts).mockReturnValueOnce([]);
 
       const drafts = await getDraftEntries();
       expect(drafts).toEqual([]);
-    });
-
-    it("returns empty array on fetch error", async () => {
-      vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new Error("network error"));
-
-      const drafts = await getDraftEntries();
-      expect(drafts).toEqual([]);
-    });
-
-    it("sorts drafts newest first", async () => {
-      mockFetch([{
-        body: {
-          records: [
-            {
-              uri: `at://${DID}/com.whtwnd.blog.entry/older`,
-              cid: "cid1",
-              value: {
-                title: "Older Draft",
-                content: "C",
-                createdAt: "2025-01-01T00:00:00Z",
-                visibility: "author",
-              },
-            },
-            {
-              uri: `at://${DID}/com.whtwnd.blog.entry/newer`,
-              cid: "cid2",
-              value: {
-                title: "Newer Draft",
-                content: "C",
-                createdAt: "2025-06-01T00:00:00Z",
-                visibility: "author",
-              },
-            },
-          ],
-        },
-      }]);
-
-      const drafts = await getDraftEntries();
-      expect(drafts[0].title).toBe("Newer Draft");
-      expect(drafts[1].title).toBe("Older Draft");
     });
   });
 
   describe("getRawBlogEntry", () => {
-    it("returns entry regardless of visibility", async () => {
-      mockFetch([{
-        body: {
-          uri: `at://${DID}/com.whtwnd.blog.entry/draft`,
-          cid: "cid1",
-          value: {
-            title: "Draft Post",
-            content: "WIP content",
-            createdAt: "2025-01-01T00:00:00Z",
-            visibility: "author",
-          },
-        },
-      }]);
+    it("returns draft from SQLite when it exists", async () => {
+      vi.mocked(getDraft).mockReturnValueOnce({
+        uri: "",
+        cid: "",
+        rkey: "local-draft",
+        title: "Local Draft",
+        content: "WIP content",
+        createdAt: "2025-01-01T00:00:00Z",
+        visibility: "author",
+      });
 
-      const entry = await getRawBlogEntry("draft");
+      const entry = await getRawBlogEntry("local-draft");
       expect(entry).not.toBeNull();
-      expect(entry!.title).toBe("Draft Post");
+      expect(entry!.title).toBe("Local Draft");
       expect(entry!.visibility).toBe("author");
+      expect(getDraft).toHaveBeenCalledWith("local-draft");
     });
 
-    it("returns public entries too", async () => {
+    it("falls through to PDS when not in SQLite", async () => {
+      vi.mocked(getDraft).mockReturnValueOnce(null);
       mockFetch([{
         body: {
           uri: `at://${DID}/com.whtwnd.blog.entry/pub`,
@@ -685,7 +623,8 @@ describe("pds", () => {
       expect(entry!.visibility).toBe("public");
     });
 
-    it("returns null on 404", async () => {
+    it("returns null on 404 when not in SQLite", async () => {
+      vi.mocked(getDraft).mockReturnValueOnce(null);
       vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
         new Response("Not found", { status: 404 })
       );
@@ -694,14 +633,16 @@ describe("pds", () => {
       expect(entry).toBeNull();
     });
 
-    it("returns null on network error", async () => {
+    it("returns null on network error when not in SQLite", async () => {
+      vi.mocked(getDraft).mockReturnValueOnce(null);
       vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new Error("timeout"));
 
       const entry = await getRawBlogEntry("error");
       expect(entry).toBeNull();
     });
 
-    it("defaults visibility to public when missing", async () => {
+    it("defaults visibility to public when missing from PDS", async () => {
+      vi.mocked(getDraft).mockReturnValueOnce(null);
       mockFetch([{
         body: {
           uri: `at://${DID}/com.whtwnd.blog.entry/novis`,
@@ -802,7 +743,8 @@ describe("pds", () => {
       expect(entry!.blobs![0].ref.$link).toBe("bafkreitest123");
     });
 
-    it("parses blobs in getRawBlogEntry", async () => {
+    it("parses blobs in getRawBlogEntry from PDS", async () => {
+      vi.mocked(getDraft).mockReturnValueOnce(null);
       mockFetch([{
         body: {
           uri: `at://${DID}/com.whtwnd.blog.entry/rawblob`,
@@ -822,21 +764,34 @@ describe("pds", () => {
       expect(entry!.blobs).toHaveLength(1);
     });
 
-    it("parses blobs in getDraftEntries", async () => {
-      mockFetch([{
-        body: {
-          records: [{
-            uri: `at://${DID}/com.whtwnd.blog.entry/draftblob`,
-            cid: "cid1",
-            value: {
-              title: "Draft with Blob",
-              content: "C",
-              createdAt: "2025-01-01T00:00:00Z",
-              visibility: "author",
-              blobs: [validBlob],
-            },
-          }],
-        },
+    it("returns blobs from SQLite draft in getRawBlogEntry", async () => {
+      vi.mocked(getDraft).mockReturnValueOnce({
+        uri: "",
+        cid: "",
+        rkey: "draftblob",
+        title: "Draft with Blob",
+        content: "C",
+        createdAt: "2025-01-01T00:00:00Z",
+        visibility: "author",
+        blobs: [validBlob],
+      });
+
+      const entry = await getRawBlogEntry("draftblob");
+      expect(entry).not.toBeNull();
+      expect(entry!.blobs).toHaveLength(1);
+      expect(entry!.blobs![0].ref.$link).toBe("bafkreitest123");
+    });
+
+    it("returns blobs from getDraftEntries via listDrafts", async () => {
+      vi.mocked(listDrafts).mockReturnValueOnce([{
+        uri: "",
+        cid: "",
+        rkey: "draftblob",
+        title: "Draft with Blob",
+        content: "C",
+        createdAt: "2025-01-01T00:00:00Z",
+        visibility: "author",
+        blobs: [validBlob],
       }]);
 
       const drafts = await getDraftEntries();
