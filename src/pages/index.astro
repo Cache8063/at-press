@@ -8,50 +8,144 @@ const profile = await getProfile();
 const entries = await getBlogEntries();
 ---
 
-<Base title="bkb — writing" description={profile.description || "Writing by bkb on the AT Protocol"}>
-  <div class="mb-14 fade-in">
-    <div class="flex items-center gap-4 mb-5">
-      {profile.avatarUrl && (
-        <img
-          src={profile.avatarUrl}
-          alt={profile.displayName}
-          class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover ring-1 ring-border-light"
-        />
-      )}
-      <div>
-        <h1 class="font-serif text-xl sm:text-2xl font-bold text-ink-bright">{profile.displayName}</h1>
-        <p class="text-sm text-muted">@{HANDLE}</p>
+<Base title="bkb — writing" description={profile.description || "Writing by bkb on the AT Protocol"} maxWidth="max-w-4xl">
+  <div class="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-8 md:gap-12 fade-in">
+    <!-- Profile sidebar -->
+    <aside class="md:sticky md:top-8 md:self-start">
+      <div class="flex flex-row md:flex-col items-center md:items-start gap-4 md:gap-0">
+        {profile.avatarUrl && (
+          <img
+            src={profile.avatarUrl}
+            alt={profile.displayName}
+            class="w-14 h-14 md:w-20 md:h-20 rounded-full object-cover ring-1 ring-border-light md:mb-4"
+          />
+        )}
+        <div class="md:w-full">
+          <h1 class="font-serif text-xl font-bold text-ink-bright">{profile.displayName}</h1>
+          <p class="text-xs text-muted font-mono">@{HANDLE}</p>
+        </div>
       </div>
+      {profile.description && (
+        <p class="text-muted text-sm whitespace-pre-line leading-relaxed mt-3 hidden md:block">{profile.description}</p>
+      )}
+      <div class="hidden md:flex flex-col gap-1.5 mt-4 text-sm">
+        <button
+          id="about-trigger"
+          class="text-left text-accent hover:text-accent-light transition-colors cursor-pointer"
+        >
+          about this blog
+        </button>
+        <a
+          href={`https://bsky.app/profile/${HANDLE}`}
+          target="_blank"
+          rel="noopener"
+          class="text-muted hover:text-ink transition-colors"
+        >
+          bluesky &rarr;
+        </a>
+      </div>
+      <!-- Mobile: compact about link -->
+      <button
+        id="about-trigger-mobile"
+        class="md:hidden text-sm text-accent hover:text-accent-light transition-colors cursor-pointer mt-2"
+      >
+        about this blog
+      </button>
+    </aside>
+
+    <!-- Post list -->
+    <div>
+      {entries.length === 0 ? (
+        <p class="text-muted italic font-serif fade-in-delay">No entries yet.</p>
+      ) : (
+        <div class="divide-y divide-border/40 fade-in-delay">
+          {entries.map((entry) => (
+            <article>
+              <a href={`/${entry.rkey}`} class="group block py-4 sm:py-5 -mx-3 sm:-mx-4 px-3 sm:px-4 rounded-lg hover:bg-paper-raised transition-all border-l-2 border-transparent hover:border-accent">
+                <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4">
+                  <h2 class="font-serif text-base sm:text-lg font-semibold text-ink-bright group-hover:text-accent transition-colors">
+                    {entry.title}
+                  </h2>
+                  <time
+                    datetime={entry.createdAt}
+                    class="text-xs font-mono text-muted shrink-0"
+                  >
+                    {formatDate(entry.createdAt)}
+                  </time>
+                </div>
+                <p class="text-muted text-sm leading-relaxed mt-1.5 font-serif">
+                  {excerpt(entry.content)}
+                </p>
+              </a>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
-    {profile.description && (
-      <p class="text-muted text-sm whitespace-pre-line leading-relaxed">{profile.description}</p>
-    )}
   </div>
 
-  {entries.length === 0 ? (
-    <p class="text-muted italic font-serif fade-in-delay">No entries yet.</p>
-  ) : (
-    <div class="divide-y divide-border/40 fade-in-delay">
-      {entries.map((entry) => (
-        <article>
-          <a href={`/${entry.rkey}`} class="group block py-4 sm:py-5 -mx-3 sm:-mx-4 px-3 sm:px-4 rounded-lg hover:bg-paper-raised transition-all border-l-2 border-transparent hover:border-accent">
-            <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4">
-              <h2 class="font-serif text-base sm:text-lg font-semibold text-ink-bright group-hover:text-accent transition-colors">
-                {entry.title}
-              </h2>
-              <time
-                datetime={entry.createdAt}
-                class="text-xs font-mono text-muted shrink-0"
-              >
-                {formatDate(entry.createdAt)}
-              </time>
-            </div>
-            <p class="text-muted text-sm leading-relaxed mt-1.5 font-serif">
-              {excerpt(entry.content)}
-            </p>
-          </a>
-        </article>
-      ))}
+  <!-- About modal -->
+  <div id="about-modal" class="about-overlay" aria-hidden="true">
+    <div class="about-backdrop"></div>
+    <div class="about-panel">
+      <div class="flex items-start justify-between mb-6">
+        <h2 class="font-serif text-xl font-bold text-ink-bright">About</h2>
+        <button id="about-close" class="text-muted hover:text-ink transition-colors cursor-pointer text-lg leading-none">&times;</button>
+      </div>
+      <div class="font-serif text-ink leading-relaxed space-y-4">
+        <p>
+          Writing about the things I build, break, and think about — mostly around
+          self-hosting, the AT Protocol, and whatever side project has my attention.
+        </p>
+        <p>
+          This blog runs on <a href="https://atproto.com" target="_blank" rel="noopener" class="text-accent hover:text-accent-light transition-colors underline underline-offset-2">AT Protocol</a>.
+          Every post is an atproto record stored on my personal PDS at
+          <a href="https://arcnode.xyz" target="_blank" rel="noopener" class="text-accent hover:text-accent-light transition-colors underline underline-offset-2">arcnode.xyz</a>,
+          rendered here with Astro. No database, no CMS — just protocol-native content.
+        </p>
+        <p>
+          I'm a consultant by trade, a developer by habit. Currently building
+          <a href="https://consultpitch.com" target="_blank" rel="noopener" class="text-accent hover:text-accent-light transition-colors underline underline-offset-2">ConsultPitch</a>
+          and running my own infrastructure on Hetzner and Proxmox.
+        </p>
+        <p class="text-sm text-muted">
+          Houston, TX
+        </p>
+      </div>
     </div>
-  )}
+  </div>
 </Base>
+
+<script>
+  function initAboutModal() {
+    const modal = document.getElementById("about-modal");
+    const triggers = [
+      document.getElementById("about-trigger"),
+      document.getElementById("about-trigger-mobile"),
+    ];
+    const closeBtn = document.getElementById("about-close");
+    const backdrop = modal?.querySelector(".about-backdrop");
+
+    if (!modal) return;
+
+    function open() {
+      modal!.classList.add("is-open");
+      modal!.setAttribute("aria-hidden", "false");
+    }
+
+    function close() {
+      modal!.classList.remove("is-open");
+      modal!.setAttribute("aria-hidden", "true");
+    }
+
+    triggers.forEach((btn) => btn?.addEventListener("click", open));
+    closeBtn?.addEventListener("click", close);
+    backdrop?.addEventListener("click", close);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal!.classList.contains("is-open")) close();
+    });
+  }
+
+  initAboutModal();
+</script>

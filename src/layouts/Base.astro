@@ -6,9 +6,11 @@ interface Props {
   title: string;
   description?: string;
   wide?: boolean;
+  maxWidth?: string;
 }
 
-const { title, description = "Writing by bkb", wide = false } = Astro.props;
+const { title, description = "Writing by bkb", wide = false, maxWidth } = Astro.props;
+const widthClass = maxWidth || (wide ? 'max-w-6xl' : 'max-w-2xl');
 const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
 ---
 
@@ -32,7 +34,7 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
   </head>
   <body class="bg-paper text-ink min-h-screen">
     <header class="border-b border-border">
-      <nav class="max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
+      <nav class={`${widthClass} mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between`}>
         <a href="/" class="font-serif text-xl font-bold tracking-tight text-ink-bright hover:text-accent transition-colors">
           bkb
         </a>
@@ -56,12 +58,12 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
       </nav>
     </header>
 
-    <main class={`mx-auto px-4 sm:px-6 py-8 sm:py-12 ${wide ? 'max-w-6xl' : 'max-w-2xl'}`}>
+    <main class={`mx-auto px-4 sm:px-6 py-8 sm:py-12 ${widthClass}`}>
       <slot />
     </main>
 
     <footer class="border-t border-border mt-16">
-      <div class="max-w-2xl mx-auto px-4 sm:px-6 py-8 flex items-center justify-between text-sm text-muted">
+      <div class={`${widthClass} mx-auto px-4 sm:px-6 py-8 flex items-center justify-between text-sm text-muted`}>
         <p>
           powered by <a href="https://atproto.com" target="_blank" rel="noopener" class="text-accent/70 hover:text-accent transition-colors">AT Protocol</a>
           <span class="text-border-light mx-2">&middot;</span>
