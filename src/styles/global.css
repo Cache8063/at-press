@@ -79,6 +79,12 @@
   --color-border-light: #dec9ce;
 }
 
+/* Text selection — theme-matched highlight */
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 25%, transparent);
+  color: var(--color-ink-bright);
+}
+
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
@@ -271,8 +277,17 @@ body {
 
 .prose hr {
   border: none;
-  border-top: 1px solid var(--color-border);
   margin: 2.5rem 0;
+  text-align: center;
+  line-height: 0;
+}
+
+.prose hr::after {
+  content: "·   ·   ·";
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  letter-spacing: 0.15em;
+  color: var(--color-muted);
 }
 
 .prose img {

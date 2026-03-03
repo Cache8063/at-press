@@ -34,7 +34,7 @@ const entries = await getBlogEntries();
     <div class="space-y-1 fade-in-delay">
       {entries.map((entry) => (
         <article>
-          <a href={`/${entry.rkey}`} class="group block py-4 sm:py-5 -mx-3 sm:-mx-4 px-3 sm:px-4 rounded-lg hover:bg-paper-raised transition-colors">
+          <a href={`/${entry.rkey}`} class="group block py-4 sm:py-5 -mx-3 sm:-mx-4 px-3 sm:px-4 rounded-lg hover:bg-paper-raised transition-all border-l-2 border-transparent hover:border-accent">
             <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4">
               <h2 class="font-serif text-base sm:text-lg font-semibold text-ink-bright group-hover:text-accent transition-colors">
                 {entry.title}
