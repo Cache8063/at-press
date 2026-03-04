@@ -23,6 +23,16 @@ MAX_CONTENT_LENGTH = 100_000
 MAX_ABOUT_LENGTH   = 5_000
 MAX_IMAGE_SIZE     = 5 * 1024 * 1024  // 5 MB
 
+// Session
+SESSION_DID_COOKIE    = "session_did"
+SESSION_HANDLE_COOKIE = "session_handle"
+SESSION_MAX_AGE       = 86400 * 7  // 7 days
+
+// RSS
+RSS_MAX_ITEMS          = 20
+RSS_EXCERPT_LENGTH     = 300
+DEFAULT_EXCERPT_LENGTH = 160
+
 // Cache TTLs (ms)
 PROFILE_TTL      = 3600_000  // 1 hour
 ENTRIES_TTL      = 300_000   // 5 min
@@ -132,4 +142,4 @@ DB path: `DRAFTS_DB_PATH` env var, default `/data/drafts.db`. Use `:memory:` for
 | Single entry | 10 min | 200 |
 | Drafts | No cache | - |
 
-Stale cache served on network error (fallback).
+All PDS catch blocks log via `console.error` before returning stale/fallback data. RSS feed returns 503 on fetch failure.

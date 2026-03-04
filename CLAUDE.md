@@ -35,9 +35,9 @@ src/pages/api/        # publish, update, delete, upload-image, about, logout
 ## Key Patterns
 
 - Drafts in SQLite, published posts on PDS. See atproto skill for state transitions.
-- All content limits and cache TTLs centralized in `constants.ts`
+- All config centralized in `constants.ts`: URLs, limits, cache TTLs, session cookies, RSS params
+- All PDS catch blocks log errors before falling back to stale cache
 - CSP uses `PDS_URL` from constants (not hardcoded)
-- Stale cache served on network errors (graceful fallback)
 
 ## Environment
 
