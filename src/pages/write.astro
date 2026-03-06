@@ -61,21 +61,21 @@ const editBlobs = editEntry?.blobs ?? [];
 <Base title={`${pageTitle} — bkb`} description="Compose a blog entry" wide={authed}>
   {!authed ? (
     <div class="py-8 sm:py-12 fade-in max-w-sm mx-auto">
-      <div class="border border-border/50 rounded-lg p-6 sm:p-8 text-center">
-        <div class="w-12 h-12 mx-auto mb-5 rounded-full bg-accent/10 flex items-center justify-center">
-          <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="login-card rounded-xl p-6 sm:p-8 text-center">
+        <div class="w-12 h-12 mx-auto mb-5 rounded-full bg-accent/20 flex items-center justify-center">
+          <svg class="w-6 h-6 text-accent-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
           </svg>
         </div>
         <h1 class="font-serif text-xl font-bold text-ink-bright mb-2">Sign in to write</h1>
-        <p class="text-muted font-serif text-sm mb-6">Use your AT Protocol identity to publish posts.</p>
+        <p class="text-ink-dim font-serif text-sm mb-6">Use your AT Protocol identity to publish posts.</p>
         <a
           href={loginUrl}
-          class="inline-block w-full px-6 py-3 bg-accent/10 border border-accent/30 text-accent font-serif rounded-lg hover:bg-accent/20 transition-colors"
+          class="login-btn inline-block w-full px-6 py-3 font-serif rounded-lg transition-all"
         >
           Sign in with AT Protocol
         </a>
-        <p class="text-xs text-muted font-mono mt-4">Only the blog owner can sign in.</p>
+        <p class="text-xs text-ink-dim font-mono mt-4 opacity-70">Only the blog owner can sign in.</p>
       </div>
     </div>
   ) : (
@@ -423,6 +423,21 @@ const editBlobs = editEntry?.blobs ?? [];
 </script>
 
 <style is:global>
+  .login-card {
+    background: var(--color-paper-dim);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  }
+  .login-btn {
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
+    color: var(--color-paper);
+    font-weight: 500;
+  }
+  .login-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
   .editor-textarea {
     font-family: var(--font-mono);
     font-size: 0.9375rem;
