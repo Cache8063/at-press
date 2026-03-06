@@ -20,7 +20,7 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#d9ccb4" />
+    <meta name="theme-color" content="#0f172a" />
     <link rel="canonical" href={canonicalUrl.toString()} />
     <link rel="alternate" type="application/rss+xml" title="bkb — writing" href="/rss.xml" />
     <meta property="og:title" content={title} />
@@ -29,7 +29,7 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
     <meta property="og:url" content={canonicalUrl.toString()} />
     <title>{title}</title>
     <script is:inline>
-      (function(){var t=localStorage.getItem("blog-theme");if(t&&t!=="parchment")document.documentElement.setAttribute("data-theme",t)})();
+      (function(){var t=localStorage.getItem("blog-theme");if(t==="midnight"){localStorage.removeItem("blog-theme")}else if(t&&t!=="default"){document.documentElement.setAttribute("data-theme",t)}})();
     </script>
   </head>
   <body class="bg-paper text-ink min-h-screen">
@@ -70,8 +70,8 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
           served from <a href="https://arcnode.xyz" class="text-accent/70 hover:text-accent transition-colors">arcnode.xyz</a>
         </p>
         <div id="theme-selector" class="flex items-center gap-1.5">
+          <button data-set-theme="default" title="Default" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #0f172a;"></button>
           <button data-set-theme="parchment" title="Parchment" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #d9ccb4;"></button>
-          <button data-set-theme="midnight" title="Midnight" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #0f1419;"></button>
           <button data-set-theme="moss" title="Moss" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #dde6d5;"></button>
           <button data-set-theme="slate" title="Slate" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #eef0f3;"></button>
           <button data-set-theme="rose" title="Rose" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #f0e2e4;"></button>
@@ -81,21 +81,22 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
 
     <script>
       const THEME_COLORS: Record<string, string> = {
+        default: "#0f172a",
         parchment: "#d9ccb4",
-        midnight: "#0f1419",
         moss: "#dde6d5",
         slate: "#eef0f3",
         rose: "#f0e2e4",
       };
 
       function applyTheme(theme: string) {
-        if (theme === "parchment") {
+        if (!theme || theme === "default" || theme === "midnight") {
           document.documentElement.removeAttribute("data-theme");
+          theme = "default";
         } else {
           document.documentElement.setAttribute("data-theme", theme);
         }
         const meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.setAttribute("content", THEME_COLORS[theme] || THEME_COLORS.parchment);
+        if (meta) meta.setAttribute("content", THEME_COLORS[theme] || THEME_COLORS.default);
         document.querySelectorAll(".theme-dot").forEach((dot) => {
           const btn = dot as HTMLButtonElement;
           const isActive = btn.dataset.setTheme === theme;
@@ -106,12 +107,13 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
       }
 
       // Apply saved theme immediately
-      applyTheme(localStorage.getItem("blog-theme") || "parchment");
+      const saved = localStorage.getItem("blog-theme");
+      applyTheme(saved || "default");
 
       // Bind click handlers
       document.querySelectorAll("[data-set-theme]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          applyTheme((btn as HTMLElement).dataset.setTheme || "parchment");
+          applyTheme((btn as HTMLElement).dataset.setTheme || "default");
         });
       });
     </script>

@@ -1,6 +1,26 @@
 @import "tailwindcss";
 
 @theme {
+  --color-ink: #cbd5e1;
+  --color-ink-bright: #e2e8f0;
+  --color-ink-dim: #94a3b8;
+  --color-paper: #0f172a;
+  --color-paper-raised: #1e293b;
+  --color-paper-dim: #141c27;
+  --color-accent: #3b82f6;
+  --color-accent-light: #8b5cf6;
+  --color-muted: #64748b;
+  --color-border: #334155;
+  --color-border-light: #3f4f63;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, serif;
+  --font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+}
+
+/* Default: dark navy with blue-purple accents (ATAuth style) */
+/* Uses the @theme defaults above */
+
+/* Theme: Parchment — warm aged paper */
+[data-theme="parchment"] {
   --color-ink: #3d3329;
   --color-ink-bright: #1a1410;
   --color-ink-dim: #6b5d4f;
@@ -12,26 +32,6 @@
   --color-muted: #7d6a56;
   --color-border: #bfb196;
   --color-border-light: #c9bca3;
-  --font-serif: "Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, serif;
-  --font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
-}
-
-/* Theme: Parchment (default — warm aged paper) */
-/* Uses the @theme defaults above */
-
-/* Theme: Midnight — dark blue-black with cool accents */
-[data-theme="midnight"] {
-  --color-ink: #b8c4d0;
-  --color-ink-bright: #e2e8f0;
-  --color-ink-dim: #7a8a9c;
-  --color-paper: #0f1419;
-  --color-paper-raised: #1a2332;
-  --color-paper-dim: #141c27;
-  --color-accent: #5b9bd5;
-  --color-accent-light: #7ab3e8;
-  --color-muted: #5c6b7e;
-  --color-border: #1e2d3d;
-  --color-border-light: #263545;
 }
 
 /* Theme: Moss — earthy green tones */
@@ -90,7 +90,15 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Default body gradient — subtle blue/purple ambient glow */
 body {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(14, 165, 233, 0.1) 0%, transparent 50%);
+}
+
+[data-theme="parchment"] body {
   background-image:
     radial-gradient(ellipse at 25% 15%, rgba(240, 225, 180, 0.7) 0%, transparent 30%),
     radial-gradient(ellipse at 70% 5%, rgba(235, 218, 170, 0.5) 0%, transparent 25%),
@@ -101,16 +109,6 @@ body {
     radial-gradient(circle at 15% 50%, rgba(90, 75, 55, 0.2) 0%, transparent 20%),
     radial-gradient(circle at 80% 35%, rgba(95, 80, 58, 0.15) 0%, transparent 18%),
     radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(100, 85, 60, 0.4) 100%);
-}
-
-[data-theme="midnight"] body {
-  background-image:
-    radial-gradient(ellipse at 25% 15%, rgba(30, 60, 100, 0.4) 0%, transparent 30%),
-    radial-gradient(ellipse at 70% 5%, rgba(20, 50, 90, 0.3) 0%, transparent 25%),
-    radial-gradient(ellipse at 60% 50%, rgba(40, 70, 120, 0.2) 0%, transparent 35%),
-    radial-gradient(ellipse at 10% 70%, rgba(10, 20, 40, 0.4) 0%, transparent 30%),
-    radial-gradient(ellipse at 85% 80%, rgba(15, 25, 50, 0.35) 0%, transparent 28%),
-    radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(5, 10, 20, 0.5) 100%);
 }
 
 [data-theme="moss"] body {
