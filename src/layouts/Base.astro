@@ -63,8 +63,8 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
     </main>
 
     <footer class="border-t border-gradient mt-16">
-      <div class={`${widthClass} mx-auto px-4 sm:px-6 py-8 flex items-center justify-between text-sm text-muted`}>
-        <p>
+      <div class={`${widthClass} mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center sm:justify-between gap-4 text-sm text-muted`}>
+        <p class="text-center sm:text-left">
           powered by <a href="https://atproto.com" target="_blank" rel="noopener" class="text-accent/70 hover:text-accent transition-colors">AT Protocol</a>
           <span class="text-border-light mx-2">&middot;</span>
           served from <a href="https://arcnode.xyz" class="text-accent/70 hover:text-accent transition-colors">arcnode.xyz</a>
