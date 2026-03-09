@@ -29,16 +29,16 @@ const isAuthor = sessionDid ? isOwner(sessionDid) : false;
             <img
               src={profile.avatarUrl}
               alt={profile.displayName}
-              class="w-14 h-14 md:w-20 md:h-20 rounded-full object-cover avatar-glow md:mb-4"
+              class="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover avatar-glow md:mb-4"
             />
           )}
           <div class="md:w-full">
             <h1 class="font-serif text-xl font-bold text-ink-bright">{profile.displayName}</h1>
-            <p class="text-xs text-muted font-mono">@{HANDLE}</p>
+            <p class="text-sm md:text-xs text-muted font-mono">@{HANDLE}</p>
           </div>
         </div>
         {profile.description && (
-          <p class="text-muted text-sm whitespace-pre-line leading-relaxed mt-3 hidden md:block">{profile.description}</p>
+          <p class="text-muted text-sm leading-relaxed mt-3 line-clamp-2 md:line-clamp-none whitespace-pre-line">{profile.description}</p>
         )}
         <div class="hidden md:flex flex-col gap-1.5 mt-4 text-sm">
           <button
@@ -71,22 +71,22 @@ const isAuthor = sessionDid ? isOwner(sessionDid) : false;
       {entries.length === 0 ? (
         <p class="text-muted italic font-serif fade-in-delay">No entries yet.</p>
       ) : (
-        <div class="space-y-3 stagger-in">
+        <div class="space-y-4 stagger-in">
           {entries.map((entry) => (
             <article>
-              <a href={`/${entry.rkey}`} class="group block py-4 sm:py-5 px-4 sm:px-5 rounded-lg border border-border/30 hover:border-accent/30 hover:bg-paper-raised card-glow">
+              <a href={`/${entry.rkey}`} class="group block py-5 px-4 sm:px-5 rounded-lg border border-border/30 hover:border-accent/30 hover:bg-paper-raised card-glow">
                 <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4">
-                  <h2 class="font-serif text-base sm:text-lg font-semibold text-ink-bright group-hover:text-accent transition-colors">
+                  <h2 class="font-serif text-lg sm:text-xl font-semibold text-ink-bright group-hover:text-accent transition-colors">
                     {entry.title}
                   </h2>
                   <time
                     datetime={entry.createdAt}
-                    class="text-xs font-mono text-muted shrink-0"
+                    class="text-xs sm:text-sm font-mono text-muted shrink-0"
                   >
                     {formatDate(entry.createdAt)}
                   </time>
                 </div>
-                <p class="text-muted text-sm leading-relaxed mt-1.5 font-serif">
+                <p class="text-muted text-sm sm:text-base leading-relaxed mt-2 font-serif">
                   {excerpt(entry.content)}
                 </p>
               </a>
