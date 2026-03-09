@@ -22,6 +22,17 @@ export const RSS_MAX_ITEMS = 20;
 export const RSS_EXCERPT_LENGTH = 300;
 export const DEFAULT_EXCERPT_LENGTH = 160;
 
+// Theme
+export const THEME_STORAGE_KEY = "blog-theme";
+export const THEME_COLORS: Record<string, string> = {
+  default: "#0f172a",
+  parchment: "#d9ccb4",
+  moss: "#dde6d5",
+  slate: "#eef0f3",
+  rose: "#f0e2e4",
+};
+export const DEFAULT_THEME_COLOR = "#0f172a";
+
 // Cache TTLs (milliseconds)
 export const PROFILE_TTL = 3600_000; // 1 hour
 export const ENTRIES_TTL = 300_000; // 5 minutes

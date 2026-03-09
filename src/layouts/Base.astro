@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import { BLOG_URL, HANDLE } from "../lib/constants";
+import { BLOG_URL, HANDLE, THEME_COLORS, DEFAULT_THEME_COLOR } from "../lib/constants";
 
 interface Props {
   title: string;
@@ -20,7 +20,7 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content={DEFAULT_THEME_COLOR} />
     <link rel="canonical" href={canonicalUrl.toString()} />
     <link rel="alternate" type="application/rss+xml" title="bkb — writing" href="/rss.xml" />
     <meta property="og:title" content={title} />
@@ -33,9 +33,9 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
     </script>
   </head>
   <body class="bg-paper text-ink min-h-screen">
-    <header class="border-b border-border">
+    <header class="border-b border-gradient">
       <nav class={`${widthClass} mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between`}>
-        <a href="/" class="font-serif text-xl font-bold tracking-tight text-ink-bright hover:text-accent transition-colors">
+        <a href="/" class="font-serif text-xl font-bold tracking-tight text-gradient hover:opacity-80 transition-opacity">
           bkb
         </a>
         <div class="flex items-center gap-4 sm:gap-5 text-sm text-muted">
@@ -62,7 +62,7 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
       <slot />
     </main>
 
-    <footer class="border-t border-border mt-16">
+    <footer class="border-t border-gradient mt-16">
       <div class={`${widthClass} mx-auto px-4 sm:px-6 py-8 flex items-center justify-between text-sm text-muted`}>
         <p>
           powered by <a href="https://atproto.com" target="_blank" rel="noopener" class="text-accent/70 hover:text-accent transition-colors">AT Protocol</a>
@@ -70,23 +70,15 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
           served from <a href="https://arcnode.xyz" class="text-accent/70 hover:text-accent transition-colors">arcnode.xyz</a>
         </p>
         <div id="theme-selector" class="flex items-center gap-1.5">
-          <button data-set-theme="default" title="Default" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #0f172a;"></button>
-          <button data-set-theme="parchment" title="Parchment" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #d9ccb4;"></button>
-          <button data-set-theme="moss" title="Moss" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #dde6d5;"></button>
-          <button data-set-theme="slate" title="Slate" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #eef0f3;"></button>
-          <button data-set-theme="rose" title="Rose" class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style="background: #f0e2e4;"></button>
+          {Object.entries(THEME_COLORS).map(([name, color]) => (
+            <button data-set-theme={name} title={name.charAt(0).toUpperCase() + name.slice(1)} class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style={`background: ${color};`}></button>
+          ))}
         </div>
       </div>
     </footer>
 
     <script>
-      const THEME_COLORS: Record<string, string> = {
-        default: "#0f172a",
-        parchment: "#d9ccb4",
-        moss: "#dde6d5",
-        slate: "#eef0f3",
-        rose: "#f0e2e4",
-      };
+      import { THEME_COLORS, THEME_STORAGE_KEY } from "../lib/constants";
 
       function applyTheme(theme: string) {
         if (!theme || theme === "default" || theme === "midnight") {
@@ -103,11 +95,11 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
           btn.style.transform = isActive ? "scale(1.35)" : "";
           btn.style.boxShadow = isActive ? "0 0 0 2px var(--color-accent)" : "";
         });
-        localStorage.setItem("blog-theme", theme);
+        localStorage.setItem(THEME_STORAGE_KEY, theme);
       }
 
       // Apply saved theme immediately
-      const saved = localStorage.getItem("blog-theme");
+      const saved = localStorage.getItem(THEME_STORAGE_KEY);
       applyTheme(saved || "default");
 
       // Bind click handlers

@@ -3,7 +3,7 @@ import Base from "../layouts/Base.astro";
 import { verifyProxyTicket, isOwner, getLoginUrl } from "../lib/auth";
 import { getDraftEntries, getRawBlogEntry, type BlogEntry } from "../lib/pds";
 import { formatDate } from "../lib/utils";
-import { SESSION_DID_COOKIE, SESSION_HANDLE_COOKIE, SESSION_MAX_AGE } from "../lib/constants";
+import { SESSION_DID_COOKIE, SESSION_HANDLE_COOKIE, SESSION_MAX_AGE, MAX_IMAGE_SIZE } from "../lib/constants";
 
 let authed = false;
 let handle = "";
@@ -210,8 +210,9 @@ const editBlobs = editEntry?.blobs ?? [];
 </Base>
 
 {authed && (
-  <script define:vars={{ editBlobs }}>
+  <script define:vars={{ editBlobs, maxImageSize: MAX_IMAGE_SIZE }}>
     window.__editBlobs = editBlobs;
+    window.__maxImageSize = maxImageSize;
   </script>
 )}
 
@@ -242,8 +243,9 @@ const editBlobs = editEntry?.blobs ?? [];
       const file = imageInput.files?.[0];
       if (!file) return;
 
-      if (file.size > 5 * 1024 * 1024) {
-        uploadStatus.textContent = "Image must be under 5 MB";
+      const maxSize = (window as any).__maxImageSize || 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        uploadStatus.textContent = `Image must be under ${maxSize / (1024 * 1024)} MB`;
         uploadStatus.className = "text-xs text-red-400";
         return;
       }

@@ -5,7 +5,7 @@ Personal blog built on Astro SSR with AT Protocol (Bluesky) as the content backe
 ## Stack
 
 - **Framework**: Astro 5 (SSR, Node adapter)
-- **Styling**: Tailwind CSS 4 with 5 themes (parchment, midnight, moss, slate, rose)
+- **Styling**: Tailwind CSS 4 with 5 themes (default, parchment, moss, slate, rose)
 - **Content**: AT Protocol PDS (published) + SQLite (drafts)
 - **Auth**: ATAuth proxy (Bluesky identity)
 - **Markdown**: marked + DOMPurify

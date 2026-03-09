@@ -33,6 +33,11 @@ RSS_MAX_ITEMS          = 20
 RSS_EXCERPT_LENGTH     = 300
 DEFAULT_EXCERPT_LENGTH = 160
 
+// Theme
+THEME_STORAGE_KEY    = "blog-theme"
+THEME_COLORS         = { default, parchment, moss, slate, rose }  // hex map
+DEFAULT_THEME_COLOR  = "#0f172a"
+
 // Cache TTLs (ms)
 PROFILE_TTL      = 3600_000  // 1 hour
 ENTRIES_TTL      = 300_000   // 5 min

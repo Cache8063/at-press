@@ -153,6 +153,42 @@ body {
   animation: fadeIn 0.4s ease-out 0.1s both;
 }
 
+/* Staggered fade-in for post lists */
+.stagger-in > *:nth-child(1) { animation: fadeIn 0.4s ease-out 0.05s both; }
+.stagger-in > *:nth-child(2) { animation: fadeIn 0.4s ease-out 0.1s both; }
+.stagger-in > *:nth-child(3) { animation: fadeIn 0.4s ease-out 0.15s both; }
+.stagger-in > *:nth-child(4) { animation: fadeIn 0.4s ease-out 0.2s both; }
+.stagger-in > *:nth-child(5) { animation: fadeIn 0.4s ease-out 0.25s both; }
+.stagger-in > *:nth-child(n+6) { animation: fadeIn 0.4s ease-out 0.3s both; }
+
+/* Gradient text utility */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card hover glow */
+.card-glow {
+  transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+}
+.card-glow:hover {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--color-accent) 12%, transparent),
+              0 0 40px color-mix(in srgb, var(--color-accent-light) 6%, transparent);
+}
+
+/* Avatar glow ring */
+.avatar-glow {
+  box-shadow: 0 0 0 2px var(--color-paper),
+              0 0 12px color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+/* Gradient border line (header/footer) */
+.border-gradient {
+  border-image: linear-gradient(90deg, var(--color-border), color-mix(in srgb, var(--color-accent) 40%, var(--color-border)), color-mix(in srgb, var(--color-accent-light) 30%, var(--color-border)), var(--color-border)) 1;
+}
+
 /* Markdown content styles */
 .prose h1 {
   font-family: var(--font-serif);
@@ -315,7 +351,9 @@ body {
 .about-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .about-panel {

@@ -35,9 +35,10 @@ src/pages/api/        # publish, update, delete, upload-image, about, logout
 ## Key Patterns
 
 - Drafts in SQLite, published posts on PDS. See atproto skill for state transitions.
-- All config centralized in `constants.ts`: URLs, limits, cache TTLs, session cookies, RSS params
+- All config centralized in `constants.ts`: URLs, limits, cache TTLs, session cookies, RSS params, theme colors
+- Theme config imported from constants in Base.astro (server + client via `import`); `is:inline` FOUC script keeps `"blog-theme"` hardcoded (can't import)
+- Client-side constants passed via Astro `define:vars` (write.astro: `MAX_IMAGE_SIZE`)
 - All PDS catch blocks log errors before falling back to stale cache
-- CSP uses `PDS_URL` from constants (not hardcoded)
 
 ## Environment
 
