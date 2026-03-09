@@ -29,7 +29,7 @@ const isAuthor = sessionDid ? isOwner(sessionDid) : false;
             <img
               src={profile.avatarUrl}
               alt={profile.displayName}
-              class="w-14 h-14 md:w-20 md:h-20 rounded-full object-cover ring-1 ring-border-light md:mb-4"
+              class="w-14 h-14 md:w-20 md:h-20 rounded-full object-cover avatar-glow md:mb-4"
             />
           )}
           <div class="md:w-full">
@@ -71,10 +71,10 @@ const isAuthor = sessionDid ? isOwner(sessionDid) : false;
       {entries.length === 0 ? (
         <p class="text-muted italic font-serif fade-in-delay">No entries yet.</p>
       ) : (
-        <div class="space-y-3 fade-in-delay">
+        <div class="space-y-3 stagger-in">
           {entries.map((entry) => (
             <article>
-              <a href={`/${entry.rkey}`} class="group block py-4 sm:py-5 px-4 sm:px-5 rounded-lg border border-border/30 hover:border-border/60 hover:bg-paper-raised transition-all">
+              <a href={`/${entry.rkey}`} class="group block py-4 sm:py-5 px-4 sm:px-5 rounded-lg border border-border/30 hover:border-accent/30 hover:bg-paper-raised card-glow">
                 <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4">
                   <h2 class="font-serif text-base sm:text-lg font-semibold text-ink-bright group-hover:text-accent transition-colors">
                     {entry.title}
