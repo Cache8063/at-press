@@ -33,12 +33,12 @@ const isAuthor = sessionDid ? isOwner(sessionDid) : false;
             />
           )}
           <div class="md:w-full">
-            <h1 class="font-serif text-xl font-bold text-ink-bright">{profile.displayName}</h1>
-            <p class="text-sm md:text-xs text-muted font-mono">@{HANDLE}</p>
+            <h1 class="font-serif text-2xl md:text-xl font-bold text-ink-bright">{profile.displayName}</h1>
+            <p class="text-base md:text-xs text-muted font-mono">@{HANDLE}</p>
           </div>
         </div>
         {profile.description && (
-          <p class="text-muted text-sm leading-relaxed mt-3 line-clamp-2 md:line-clamp-none whitespace-pre-line">{profile.description}</p>
+          <p class="text-muted text-base md:text-sm leading-relaxed mt-3 line-clamp-2 md:line-clamp-none whitespace-pre-line">{profile.description}</p>
         )}
         <div class="hidden md:flex flex-col gap-1.5 mt-4 text-sm">
           <button
@@ -59,7 +59,7 @@ const isAuthor = sessionDid ? isOwner(sessionDid) : false;
         <!-- Mobile: compact about link -->
         <button
           id="about-trigger-mobile"
-          class="md:hidden text-sm text-accent hover:text-accent-light transition-colors cursor-pointer mt-2"
+          class="md:hidden text-base text-accent hover:text-accent-light transition-colors cursor-pointer mt-2"
         >
           about this blog
         </button>
@@ -76,17 +76,17 @@ const isAuthor = sessionDid ? isOwner(sessionDid) : false;
             <article>
               <a href={`/${entry.rkey}`} class="group block py-5 px-4 sm:px-5 rounded-lg border border-border/30 hover:border-accent/30 hover:bg-paper-raised card-glow">
                 <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4">
-                  <h2 class="font-serif text-lg sm:text-xl font-semibold text-ink-bright group-hover:text-accent transition-colors">
+                  <h2 class="font-serif text-xl md:text-xl font-semibold text-ink-bright group-hover:text-accent transition-colors">
                     {entry.title}
                   </h2>
                   <time
                     datetime={entry.createdAt}
-                    class="text-xs sm:text-sm font-mono text-muted shrink-0"
+                    class="text-sm font-mono text-muted shrink-0"
                   >
                     {formatDate(entry.createdAt)}
                   </time>
                 </div>
-                <p class="text-muted text-sm sm:text-base leading-relaxed mt-2 font-serif">
+                <p class="text-muted text-base md:text-base leading-relaxed mt-2 font-serif">
                   {excerpt(entry.content)}
                 </p>
               </a>
