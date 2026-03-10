@@ -71,7 +71,7 @@ services:
     environment:
       - HOST=0.0.0.0
       - PORT=4000
-      - ATAUTH_GATEWAY_URL=http://172.17.0.1:3100
+      - ATAUTH_GATEWAY_URL=https://apricot.workingtitle.zip
       - DRAFTS_DB_PATH=/data/drafts.db
     volumes:
       - blog-data:/data
@@ -79,7 +79,7 @@ volumes:
   blog-data:
 ```
 
-- `ATAUTH_GATEWAY_URL` routes to atauth container via Docker bridge
+- `ATAUTH_GATEWAY_URL` points to K8s-hosted ATAuth (no local atauth container on pds-hetzner)
 - `blog-data` named volume persists SQLite drafts across container rebuilds
 - Dockerfile creates `/data` dir owned by `blog` user
 - `better-sqlite3` native module compiled in build stage (needs python3, make, g++)
