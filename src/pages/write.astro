@@ -267,13 +267,14 @@ const editBlobs = editEntry?.blobs ?? [];
       uploadStatus.textContent = "uploading...";
       uploadStatus.className = "text-xs text-muted";
 
-      const formData = new FormData();
-      formData.append("file", file);
-
       try {
+        const buf = await file.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+
         const res = await fetch("/api/upload-image", {
           method: "POST",
-          body: formData,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: base64, mimeType: file.type, name: file.name }),
         });
 
         const data = await res.json();
