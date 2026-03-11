@@ -160,6 +160,105 @@ body {
     radial-gradient(ellipse at 70% 70%, rgba(190, 185, 175, 0.2) 0%, transparent 35%);
 }
 
+/* ── E-Ink animation overrides ──
+   Mimics color e-ink display behavior:
+   - Full page refresh flash on load
+   - Discrete stepped rendering (no smooth fades)
+   - No glows, shadows, or smooth transitions
+   - No backdrop blur (e-ink can't blur)
+*/
+
+@keyframes einkRefresh {
+  0% { opacity: 1; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes einkFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Flash overlay on page load */
+[data-theme="eink"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--color-ink-bright);
+  z-index: 9999;
+  animation: einkRefresh 0.5s steps(2) both;
+  pointer-events: none;
+}
+
+/* Kill all smooth transitions */
+[data-theme="eink"] *,
+[data-theme="eink"] *::before,
+[data-theme="eink"] *::after {
+  transition-duration: 0s !important;
+}
+
+/* Stepped fade-in (no slide, no ease) */
+[data-theme="eink"] .fade-in {
+  animation: einkFadeIn 0.3s steps(4) 0.25s both;
+}
+
+[data-theme="eink"] .fade-in-delay {
+  animation: einkFadeIn 0.3s steps(4) 0.35s both;
+}
+
+/* Stepped stagger (delays follow the page flash) */
+[data-theme="eink"] .stagger-in > *:nth-child(1) { animation: einkFadeIn 0.2s steps(3) 0.3s both; }
+[data-theme="eink"] .stagger-in > *:nth-child(2) { animation: einkFadeIn 0.2s steps(3) 0.35s both; }
+[data-theme="eink"] .stagger-in > *:nth-child(3) { animation: einkFadeIn 0.2s steps(3) 0.4s both; }
+[data-theme="eink"] .stagger-in > *:nth-child(4) { animation: einkFadeIn 0.2s steps(3) 0.45s both; }
+[data-theme="eink"] .stagger-in > *:nth-child(5) { animation: einkFadeIn 0.2s steps(3) 0.5s both; }
+[data-theme="eink"] .stagger-in > *:nth-child(n+6) { animation: einkFadeIn 0.2s steps(3) 0.55s both; }
+
+/* Remove glows and shadows */
+[data-theme="eink"] .card-glow {
+  transition: none;
+}
+
+[data-theme="eink"] .card-glow:hover {
+  box-shadow: none;
+  border-color: var(--color-accent);
+}
+
+[data-theme="eink"] .avatar-glow {
+  box-shadow: 0 0 0 2px var(--color-paper);
+}
+
+/* About modal: instant, no blur, no slide */
+[data-theme="eink"] .about-overlay {
+  transition: none;
+}
+
+[data-theme="eink"] .about-backdrop {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="eink"] .about-panel {
+  transition: none;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="eink"] .about-overlay.is-open .about-panel {
+  transform: none;
+}
+
+/* Login button: no hover glow or lift */
+[data-theme="eink"] .login-btn:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+[data-theme="eink"] .login-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 /* Fade-in animation */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
