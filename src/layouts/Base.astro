@@ -33,6 +33,7 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
     </script>
   </head>
   <body class="bg-paper text-ink min-h-screen">
+    <a href="#main-content" class="skip-link">Skip to content</a>
     <header class="border-b border-gradient">
       <nav class={`${widthClass} mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between`}>
         <a href="/" class="font-serif text-xl font-bold tracking-tight text-gradient hover:opacity-80 transition-opacity">
@@ -43,7 +44,8 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
           <a
             href={`https://bsky.app/profile/${HANDLE}`}
             target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
+            aria-label="Bluesky profile (opens in new tab)"
             class="hover:text-ink transition-colors"
           >
             bluesky
@@ -58,7 +60,7 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
       </nav>
     </header>
 
-    <main class={`mx-auto px-4 sm:px-6 py-8 sm:py-12 ${widthClass}`}>
+    <main id="main-content" class={`mx-auto px-4 sm:px-6 py-8 sm:py-12 ${widthClass}`}>
       <slot />
     </main>
 
@@ -69,9 +71,9 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
           <span class="text-border-light mx-2">&middot;</span>
           served from <a href="https://arcnode.xyz" class="text-accent/70 hover:text-accent transition-colors">arcnode.xyz</a>
         </p>
-        <div id="theme-selector" class="flex items-center gap-1.5">
+        <div id="theme-selector" role="group" aria-label="Theme selector" class="flex items-center gap-1.5">
           {Object.entries(THEME_COLORS).map(([name, color]) => (
-            <button data-set-theme={name} title={name.charAt(0).toUpperCase() + name.slice(1)} class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style={`background: ${color};`}></button>
+            <button data-set-theme={name} aria-label={`Switch to ${name} theme`} class="theme-dot w-4 h-4 rounded-full border border-border-light transition-transform hover:scale-125" style={`background: ${color};`}></button>
           ))}
         </div>
       </div>

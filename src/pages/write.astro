@@ -63,7 +63,7 @@ const editBlobs = editEntry?.blobs ?? [];
     <div class="py-8 sm:py-12 fade-in max-w-sm mx-auto">
       <div class="login-card rounded-xl p-6 sm:p-8 text-center">
         <div class="w-12 h-12 mx-auto mb-5 rounded-full bg-accent/20 flex items-center justify-center">
-          <svg class="w-6 h-6 text-accent-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-6 h-6 text-accent-light" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
           </svg>
         </div>
@@ -84,8 +84,8 @@ const editBlobs = editEntry?.blobs ?? [];
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
           {isEditing && (
-            <a href="/write" class="text-muted hover:text-ink transition-colors" title="Back to drafts">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="/write" class="text-muted hover:text-ink transition-colors" aria-label="Back to drafts">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
               </svg>
             </a>
@@ -133,11 +133,13 @@ const editBlobs = editEntry?.blobs ?? [];
             data-created-at={editEntry?.createdAt || ""}
             data-visibility={editEntry?.visibility || ""}
           >
+            <label for="title-input" class="sr-only">Post title</label>
             <input
               type="text"
               id="title-input"
               placeholder="Title"
               required
+              aria-required="true"
               value={editEntry?.title || ""}
               class="w-full px-5 py-4 bg-transparent border-b border-border/50 text-ink-bright font-serif text-lg sm:text-xl focus:outline-none placeholder:text-muted/60 transition-colors"
             />
@@ -146,9 +148,10 @@ const editBlobs = editEntry?.blobs ?? [];
             <div class="flex items-center gap-2 px-4 py-2 border-b border-border/30 bg-paper-dim/50">
               <label
                 id="image-upload-label"
+                for="image-input"
                 class="cursor-pointer p-1.5 text-muted hover:text-ink rounded transition-colors inline-flex items-center gap-1.5 text-xs"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
@@ -160,22 +163,24 @@ const editBlobs = editEntry?.blobs ?? [];
                   class="hidden"
                 />
               </label>
-              <span id="upload-status" class="text-xs text-muted"></span>
+              <span id="upload-status" class="text-xs text-muted" role="status" aria-live="polite"></span>
               <span class="flex-1"></span>
               <span class="text-xs text-muted/50 font-mono hidden sm:inline">markdown</span>
             </div>
 
+            <label for="content-input" class="sr-only">Post content</label>
             <textarea
               id="content-input"
               placeholder="Write in markdown..."
               rows="24"
               required
+              aria-required="true"
               class="editor-textarea w-full px-5 py-4 border-none rounded-none"
             >{editEntry?.content || ""}</textarea>
 
             <!-- Actions -->
             <div class="flex items-center justify-between gap-3 px-4 py-3 border-t border-border/30 bg-paper-dim/50">
-              <p id="editor-status" class="text-xs text-muted font-mono hidden"></p>
+              <p id="editor-status" class="text-xs text-muted font-mono hidden" role="status" aria-live="polite"></p>
               <div class="flex items-center gap-2 ml-auto">
                 <button
                   type="button"
@@ -477,8 +482,9 @@ const editBlobs = editEntry?.blobs ?? [];
     resize: vertical;
     min-height: 400px;
   }
-  .editor-textarea:focus {
-    outline: none;
+  .editor-textarea:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
   }
   .editor-textarea::placeholder {
     color: color-mix(in srgb, var(--color-muted) 60%, transparent);

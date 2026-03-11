@@ -51,7 +51,7 @@ const entryData = {
 ---
 
 <Base title={`${entry.title} — bkb`} description={entry.content.slice(0, 155)}>
-  <article class="fade-in">
+  <article class="fade-in" aria-labelledby="article-title">
     {isDraft && isAuthor && (
       <div class="mb-6 px-4 py-3 bg-accent/10 border border-accent/30 rounded-lg text-sm font-mono text-accent">
         draft — only visible to you
@@ -65,7 +65,7 @@ const entryData = {
       >
         {formatDate(entry.createdAt, { weekday: true })}
       </time>
-      <h1 class="font-serif text-2xl sm:text-3xl md:text-4xl font-bold mt-2 leading-tight text-ink-bright">
+      <h1 id="article-title" class="font-serif text-2xl sm:text-3xl md:text-4xl font-bold mt-2 leading-tight text-ink-bright">
         {entry.title}
       </h1>
     </header>
@@ -79,7 +79,8 @@ const entryData = {
           <a
             href={`https://bsky.app/profile/${HANDLE}`}
             target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
+            aria-label={`@${HANDLE} on Bluesky (opens in new tab)`}
             class="text-accent hover:text-accent-light transition-colors"
           >
             @{HANDLE}
@@ -113,6 +114,8 @@ const entryData = {
               {isDraft ? (
                 <button
                   id="visibility-btn"
+                  type="button"
+                  aria-label="Publish post"
                   class="text-accent hover:text-accent-light transition-colors cursor-pointer"
                 >
                   publish
@@ -120,6 +123,8 @@ const entryData = {
               ) : (
                 <button
                   id="visibility-btn"
+                  type="button"
+                  aria-label="Unpublish post"
                   class="text-muted hover:text-ink transition-colors cursor-pointer"
                 >
                   unpublish
@@ -128,6 +133,8 @@ const entryData = {
               <span class="text-border-light">|</span>
               <button
                 id="delete-btn"
+                type="button"
+                aria-label="Delete post"
                 data-rkey={rkey}
                 class="text-red-700/60 hover:text-red-700 transition-colors cursor-pointer"
               >
