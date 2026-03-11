@@ -8,9 +8,17 @@ import { marked } from "marked";
 import DOMPurify from "isomorphic-dompurify";
 
 const profile = await getProfile();
-const entries = await getBlogEntries();
+const allEntries = await getBlogEntries();
 const aboutRaw = await getAbout();
 const feedPosts = await getBlueskyFeed(3);
+
+// Pagination
+const POSTS_PER_PAGE = 5;
+const pageParam = Astro.url.searchParams.get("page");
+const currentPage = Math.max(1, parseInt(pageParam || "1", 10) || 1);
+const totalPages = Math.max(1, Math.ceil(allEntries.length / POSTS_PER_PAGE));
+const page = Math.min(currentPage, totalPages);
+const entries = allEntries.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE);
 
 const aboutHtml = DOMPurify.sanitize(await marked.parse(aboutRaw), {
   ADD_ATTR: ["target"],
@@ -20,8 +28,8 @@ const sessionDid = Astro.cookies.get(SESSION_DID_COOKIE)?.value;
 const isAuthor = sessionDid ? isOwner(sessionDid) : false;
 ---
 
-<Base title="bkb — writing" description={profile.description || "Writing by bkb on the AT Protocol"} maxWidth="max-w-4xl">
-  <div class="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-8 md:gap-12 fade-in">
+<Base title="bkb — writing" description={profile.description || "Writing by bkb on the AT Protocol"} maxWidth="max-w-5xl">
+  <div class="grid grid-cols-1 md:grid-cols-[200px_1fr] lg:grid-cols-[200px_1fr_220px] gap-8 md:gap-10 fade-in">
     <!-- Profile sidebar -->
     <aside class="md:sticky md:top-8 md:self-start">
       <div class="border border-border/50 rounded-lg p-4 md:p-5">
@@ -97,35 +105,40 @@ const isAuthor = sessionDid ? isOwner(sessionDid) : false;
         </div>
       )}
 
-      {/* Bluesky feed */}
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <nav aria-label="Blog pagination" class="flex items-center justify-center gap-2 mt-8 font-mono text-sm">
+          {page > 1 && (
+            <a href={page === 2 ? "/" : `/?page=${page - 1}`} class="text-muted hover:text-accent transition-colors px-2 py-1">&larr; prev</a>
+          )}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            p === page ? (
+              <span class="text-accent font-bold px-2 py-1">{p}</span>
+            ) : (
+              <a href={p === 1 ? "/" : `/?page=${p}`} class="text-muted hover:text-accent transition-colors px-2 py-1">{p}</a>
+            )
+          ))}
+          {page < totalPages && (
+            <a href={`/?page=${page + 1}`} class="text-muted hover:text-accent transition-colors px-2 py-1">next &rarr;</a>
+          )}
+        </nav>
+      )}
+
+      {/* Bluesky feed — mobile only (shown below posts on small screens) */}
       {feedPosts.length > 0 && (
-        <section class="mt-12 pt-8 border-t border-border/30 fade-in-delay">
+        <section class="lg:hidden mt-10 pt-8 border-t border-border/30 fade-in-delay">
           <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">recent on bluesky</h2>
-          <div class="space-y-4">
+          <div class="space-y-3">
             {feedPosts.map((post) => (
               <a
                 href={bskyPostUrl(post.uri, HANDLE)}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="group block py-4 px-4 sm:px-5 rounded-lg border border-border/30 hover:border-accent/30 hover:bg-paper-raised card-glow"
+                class="group block py-3 px-4 rounded-lg border border-border/30 hover:border-accent/30 hover:bg-paper-raised card-glow"
               >
-                <p class="font-serif text-base text-ink leading-relaxed whitespace-pre-line line-clamp-4">{post.text}</p>
-                {post.images.length > 0 && (
-                  <div class="flex gap-2 mt-3 overflow-hidden rounded-lg">
-                    {post.images.slice(0, 2).map((img) => (
-                      <img
-                        src={img.thumb}
-                        alt={img.alt}
-                        class="h-20 w-auto rounded object-cover"
-                        loading="lazy"
-                      />
-                    ))}
-                  </div>
-                )}
-                <div class="flex items-center gap-4 mt-3 text-xs font-mono text-muted">
+                <p class="font-serif text-sm text-ink leading-relaxed whitespace-pre-line line-clamp-3">{post.text}</p>
+                <div class="flex items-center gap-3 mt-2 text-xs font-mono text-muted">
                   <time datetime={post.createdAt}>{relativeTime(post.createdAt)}</time>
-                  {post.replyCount > 0 && <span>{post.replyCount} replies</span>}
-                  {post.repostCount > 0 && <span>{post.repostCount} reposts</span>}
                   {post.likeCount > 0 && <span>{post.likeCount} likes</span>}
                 </div>
               </a>
@@ -134,6 +147,48 @@ const isAuthor = sessionDid ? isOwner(sessionDid) : false;
         </section>
       )}
     </div>
+
+    {/* Bluesky feed — desktop right sidebar */}
+    {feedPosts.length > 0 && (
+      <aside class="hidden lg:block lg:sticky lg:top-8 lg:self-start fade-in-delay">
+        <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">recent on bluesky</h2>
+        <div class="space-y-3">
+          {feedPosts.map((post) => (
+            <a
+              href={bskyPostUrl(post.uri, HANDLE)}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group block py-3 px-3 rounded-lg border border-border/30 hover:border-accent/30 hover:bg-paper-raised card-glow"
+            >
+              <p class="font-serif text-sm text-ink leading-relaxed whitespace-pre-line line-clamp-4">{post.text}</p>
+              {post.images.length > 0 && (
+                <div class="mt-2 overflow-hidden rounded">
+                  <img
+                    src={post.images[0].thumb}
+                    alt={post.images[0].alt}
+                    class="w-full h-auto rounded object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              )}
+              <div class="flex items-center gap-3 mt-2 text-xs font-mono text-muted">
+                <time datetime={post.createdAt}>{relativeTime(post.createdAt)}</time>
+                {post.likeCount > 0 && <span>{post.likeCount}</span>}
+                {post.repostCount > 0 && <span>{post.repostCount} rp</span>}
+              </div>
+            </a>
+          ))}
+        </div>
+        <a
+          href={`https://bsky.app/profile/${HANDLE}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="block mt-3 text-xs font-mono text-muted hover:text-accent transition-colors"
+        >
+          more on bluesky &rarr;
+        </a>
+      </aside>
+    )}
   </div>
 
   <!-- About modal -->
