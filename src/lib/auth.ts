@@ -1,22 +1,22 @@
 import { DID, BLOG_URL } from "./constants";
 
-const GATEWAY_URL =
-  process.env.ATAUTH_GATEWAY_URL || "https://apricot.workingtitle.zip";
-const ATAUTH_PUBLIC_URL =
-  process.env.ATAUTH_PUBLIC_URL || "https://apricot.workingtitle.zip";
+const GATEWAY_URL = process.env.ATAUTH_GATEWAY_URL;
+const ATAUTH_PUBLIC_URL = process.env.ATAUTH_PUBLIC_URL;
 
 interface ProxyUser {
   did: string;
   handle: string;
 }
 
-export function getLoginUrl(): string {
+export function getLoginUrl(): string | null {
+  if (!ATAUTH_PUBLIC_URL) return null;
   return `${ATAUTH_PUBLIC_URL}/auth/proxy/login?rd=${encodeURIComponent(`${BLOG_URL}/write`)}`;
 }
 
 export async function verifyProxyTicket(
   ticket: string
 ): Promise<ProxyUser | null> {
+  if (!GATEWAY_URL) return null;
   try {
     const verifyUrl = `${GATEWAY_URL}/auth/verify`;
     const originalUrl = `${BLOG_URL}/write?_atauth_ticket=${encodeURIComponent(ticket)}`;

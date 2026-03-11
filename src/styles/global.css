@@ -291,12 +291,6 @@ body {
 .stagger-in > *:nth-child(5) { animation: fadeIn 0.4s ease-out 0.25s both; }
 .stagger-in > *:nth-child(n+6) { animation: fadeIn 0.4s ease-out 0.3s both; }
 
-/* Logo: ligature vs dot-matrix */
-.logo-link { display: inline-flex; align-items: center; }
-.logo-ligature { display: block; color: var(--color-accent); }
-.logo-dots { display: none; }
-[data-theme="eink"] .logo-ligature { display: none; }
-[data-theme="eink"] .logo-dots { display: block; color: var(--color-ink-bright); }
 
 /* Gradient text utility */
 .text-gradient {

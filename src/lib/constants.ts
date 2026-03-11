@@ -1,7 +1,7 @@
-export const BLOG_URL = "https://blog.arcnode.xyz";
-export const PDS_URL = "https://arcnode.xyz";
-export const DID = "did:plc:k23ujfuppr3hr4pxvtaz7jro";
-export const HANDLE = "bkb.arcnode.xyz";
+export const BLOG_URL = import.meta.env.BLOG_URL || "http://localhost:4321";
+export const PDS_URL = import.meta.env.PDS_URL;
+export const DID = import.meta.env.DID;
+export const HANDLE = import.meta.env.HANDLE;
 export const BLOG_COLLECTION = import.meta.env.BLOG_COLLECTION || "com.whtwnd.blog.entry";
 export const ABOUT_COLLECTION = import.meta.env.ABOUT_COLLECTION || "xyz.arcnode.blog.about";
 export const ABOUT_RKEY = "self";

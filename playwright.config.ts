@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: "tests/e2e",
   timeout: 30_000,
   use: {
-    baseURL: "https://blog.arcnode.xyz",
+    baseURL: process.env.BASE_URL || "http://localhost:4321",
     extraHTTPHeaders: {
       // No auth headers needed for public pages
     },

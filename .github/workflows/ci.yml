@@ -3,19 +3,27 @@ name: CI
 on:
   push:
     branches: [main]
-    paths-ignore: ['*.md']
   pull_request:
     branches: [main]
 
 jobs:
   test:
-    name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: 22
+          cache: npm
+
       - run: npm ci
+
       - run: npm test
+
       - run: npm run build
+        env:
+          BLOG_URL: https://test.example.com
+          PDS_URL: https://pds.example.com
+          DID: did:plc:test123456
+          HANDLE: test.example.com

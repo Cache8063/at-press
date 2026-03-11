@@ -1,7 +1,7 @@
 services:
   blog:
     build: .
-    container_name: arcnode-blog
+    container_name: at-press
     restart: unless-stopped
     ports:
       - "0.0.0.0:4000:4000"
@@ -9,7 +9,6 @@ services:
     environment:
       - HOST=0.0.0.0
       - PORT=4000
-      - ATAUTH_GATEWAY_URL=https://apricot.workingtitle.zip
       - DRAFTS_DB_PATH=/data/drafts.db
     volumes:
       - blog-data:/data

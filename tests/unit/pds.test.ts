@@ -55,16 +55,16 @@ describe("pds", () => {
   });
 
   describe("constants", () => {
-    it("exports expected HANDLE", () => {
-      expect(HANDLE).toBe("bkb.arcnode.xyz");
+    it("exports HANDLE from env", () => {
+      expect(HANDLE).toBe("test.example.com");
     });
 
-    it("exports expected DID", () => {
-      expect(DID).toBe("did:plc:k23ujfuppr3hr4pxvtaz7jro");
+    it("exports DID from env", () => {
+      expect(DID).toBe("did:plc:test123456");
     });
 
-    it("exports expected PDS_URL", () => {
-      expect(PDS_URL).toBe("https://arcnode.xyz");
+    it("exports PDS_URL from env", () => {
+      expect(PDS_URL).toBe("https://pds.example.com");
     });
   });
 

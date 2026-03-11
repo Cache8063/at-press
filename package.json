@@ -1,13 +1,23 @@
 {
-  "name": "arcnode-blog",
+  "name": "at-press",
+  "description": "Protocol-native blog engine for AT Protocol. Your PDS is your CMS.",
   "type": "module",
   "version": "1.0.0",
-  "private": true,
+  "license": "MIT",
+  "author": "bkb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bkb/at-press"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "start": "node dist/server/entry.mjs",
+    "setup": "node scripts/setup.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"

@@ -1,23 +1,24 @@
-# Arcnode Blog
+# at://press
 
-Astro SSR blog on AT Protocol. Deployed on pds-hetzner via Docker.
+Astro SSR blog engine powered by AT Protocol. Your PDS is your CMS.
 
 ## Commands
 
 ```bash
+npm run setup      # Interactive first-time setup (writes .env)
 npm run dev        # localhost:4321
 npm run build      # Production build
-npm run test       # Vitest unit tests (99 tests)
-npm run test:e2e   # Playwright E2E
+npm run test       # Vitest unit tests
+npm run test:e2e   # Playwright E2E (needs running server)
 npm start          # Run built server (port 4000)
 ```
 
 ## Architecture
 
 ```
-Published posts → AT Protocol PDS (arcnode.xyz)
-Drafts          → Local SQLite (/data/drafts.db, Docker volume)
-Auth            → ATAuth (apricot.workingtitle.zip)
+Published posts → AT Protocol PDS (user-configured)
+Drafts          → Local SQLite (optional, /data/drafts.db)
+Auth            → ATAuth (optional, user-configured)
 ```
 
 ## Key Files
@@ -34,20 +35,17 @@ src/pages/api/        # publish, update, delete, upload-image, about, logout
 
 ## Key Patterns
 
-- Drafts in SQLite, published posts on PDS. See atproto skill for state transitions.
-- All config centralized in `constants.ts`: URLs, limits, cache TTLs, session cookies, RSS params, theme colors
-- Theme config imported from constants in Base.astro (server + client via `import`); `is:inline` FOUC script keeps `"blog-theme"` hardcoded (can't import)
-- Client-side constants passed via Astro `define:vars` (write.astro: `MAX_IMAGE_SIZE`)
+- All config in `constants.ts` — reads from `import.meta.env` (Astro) or `process.env` (Node)
+- Drafts in SQLite, published posts on PDS
+- Theme config imported from constants in Base.astro; FOUC script keeps `"blog-theme"` hardcoded
+- Client-side constants passed via Astro `define:vars`
 - All PDS catch blocks log errors before falling back to stale cache
+- ATAuth is optional — write page degrades gracefully when not configured
 
 ## Environment
 
-See `.env.example`. Only `PDS_APP_PASSWORD` is required.
+See `.env.example`. Required: `PDS_URL`, `DID`, `HANDLE`, `PDS_APP_PASSWORD`, `BLOG_URL`.
 
-## Skills
+## Lexicon Collections
 
-| Skill | Use When |
-|-------|----------|
-| atproto | PDS, blobs, collections, record schemas, about section, drafts |
-| testing | Writing tests, running suites, debugging failures |
-| deployment | Docker, CI/CD, volumes, server ops, manual deploy |
+Default: WhiteWind (`com.whtwnd.blog.entry`). Configurable via `BLOG_COLLECTION` env var.

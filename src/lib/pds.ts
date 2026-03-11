@@ -306,13 +306,9 @@ export async function getRawBlogEntry(
 
 let aboutCache: CacheEntry<string> | null = null;
 
-const DEFAULT_ABOUT = `Writing about the things I build, break, and think about — mostly around self-hosting, the AT Protocol, and whatever side project has my attention.
+const DEFAULT_ABOUT = `Welcome to my blog, powered by [AT Protocol](https://atproto.com). Posts are stored as records on my personal PDS — no database, no CMS, just protocol-native content.
 
-This blog runs on [AT Protocol](https://atproto.com). Every post is an atproto record stored on my personal PDS at [arcnode.xyz](https://arcnode.xyz), rendered here with Astro. No database, no CMS — just protocol-native content.
-
-I'm a consultant by trade, a developer by habit. Currently building [ConsultPitch](https://consultpitch.com) and running my own infrastructure on Hetzner and Proxmox.
-
-Houston, TX`;
+Edit this section from the blog's about panel.`;
 
 export async function getAbout(): Promise<string> {
   const staleAbout = aboutCache;

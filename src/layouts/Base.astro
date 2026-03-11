@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import { BLOG_URL, HANDLE, THEME_COLORS, DEFAULT_THEME_COLOR } from "../lib/constants";
+import { BLOG_URL, PDS_URL, HANDLE, THEME_COLORS, DEFAULT_THEME_COLOR } from "../lib/constants";
 
 interface Props {
   title: string;
@@ -9,7 +9,7 @@ interface Props {
   maxWidth?: string;
 }
 
-const { title, description = "Writing by bkb", wide = false, maxWidth } = Astro.props;
+const { title, description = "Writing on AT Protocol", wide = false, maxWidth } = Astro.props;
 const widthClass = maxWidth || (wide ? 'max-w-6xl' : 'max-w-2xl');
 const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
 ---
@@ -22,7 +22,7 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
     <meta name="description" content={description} />
     <meta name="theme-color" content={DEFAULT_THEME_COLOR} />
     <link rel="canonical" href={canonicalUrl.toString()} />
-    <link rel="alternate" type="application/rss+xml" title="bkb — writing" href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title="at://press — writing" href="/rss.xml" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="article" />
@@ -36,49 +36,9 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
     <a href="#main-content" class="skip-link">Skip to content</a>
     <header class="border-b border-gradient">
       <nav class={`${widthClass} mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between`}>
-        <a href="/" class="logo-link hover:opacity-80 transition-opacity" aria-label="bkb home">
-          <!-- Ligature logo (non-eink themes) -->
-          <svg class="logo-ligature" width="54" height="24" viewBox="0 0 54 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <!-- Left bracket -->
-            <path d="M2.5 1L0.5 1L0.5 23L2.5 23" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.35"/>
-            <!-- b -->
-            <rect x="5" y="2" width="2.2" height="20" rx="1" fill="currentColor"/>
-            <path d="M7.2 5h4.5c2 0 3.5 1.5 3.5 3.3S13.7 11.5 11.7 11.5H7.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M7.2 11.5h5c2.5 0 4 1.5 4 3.5s-1.5 3.5-4 3.5H7.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <!-- k -->
-            <rect x="19" y="2" width="2.2" height="20" rx="1" fill="currentColor"/>
-            <path d="M21.2 14L27.5 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M23.5 10.5L29.5 18.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <!-- b2 -->
-            <rect x="33" y="2" width="2.2" height="20" rx="1" fill="currentColor"/>
-            <path d="M35.2 5h4.5c2 0 3.5 1.5 3.5 3.3S41.7 11.5 39.7 11.5H35.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M35.2 11.5h5c2.5 0 4 1.5 4 3.5s-1.5 3.5-4 3.5H35.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <!-- Right bracket -->
-            <path d="M48 1L50 1L50 23L48 23" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.35"/>
-            <!-- Accent dot -->
-            <circle cx="53" cy="20.5" r="1.5" fill="currentColor" opacity="0.5"/>
-          </svg>
-          <!-- Dot matrix logo (eink theme) -->
-          <svg class="logo-dots" width="56" height="18" viewBox="0 0 56 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <!-- b -->
-            <circle cx="2" cy="2" r="1.5" fill="currentColor"/><circle cx="6" cy="2" r="1.5" fill="currentColor"/><circle cx="10" cy="2" r="1.5" fill="currentColor"/><circle cx="14" cy="2" r="1.2" fill="currentColor" opacity="0.2"/>
-            <circle cx="2" cy="6" r="1.5" fill="currentColor"/><circle cx="14" cy="6" r="1.5" fill="currentColor"/>
-            <circle cx="2" cy="10" r="1.5" fill="currentColor"/><circle cx="6" cy="10" r="1.5" fill="currentColor"/><circle cx="10" cy="10" r="1.5" fill="currentColor"/><circle cx="14" cy="10" r="1.2" fill="currentColor" opacity="0.2"/>
-            <circle cx="2" cy="14" r="1.5" fill="currentColor"/><circle cx="14" cy="14" r="1.5" fill="currentColor"/>
-            <circle cx="2" cy="18" r="1.5" fill="currentColor"/><circle cx="6" cy="18" r="1.5" fill="currentColor"/><circle cx="10" cy="18" r="1.5" fill="currentColor"/><circle cx="14" cy="18" r="1.2" fill="currentColor" opacity="0.2"/>
-            <!-- k -->
-            <circle cx="22" cy="2" r="1.5" fill="currentColor"/><circle cx="34" cy="2" r="1.5" fill="currentColor"/>
-            <circle cx="22" cy="6" r="1.5" fill="currentColor"/><circle cx="30" cy="6" r="1.5" fill="currentColor"/>
-            <circle cx="22" cy="10" r="1.5" fill="currentColor"/><circle cx="26" cy="10" r="1.5" fill="currentColor"/>
-            <circle cx="22" cy="14" r="1.5" fill="currentColor"/><circle cx="30" cy="14" r="1.5" fill="currentColor"/>
-            <circle cx="22" cy="18" r="1.5" fill="currentColor"/><circle cx="34" cy="18" r="1.5" fill="currentColor"/>
-            <!-- b -->
-            <circle cx="42" cy="2" r="1.5" fill="currentColor"/><circle cx="46" cy="2" r="1.5" fill="currentColor"/><circle cx="50" cy="2" r="1.5" fill="currentColor"/><circle cx="54" cy="2" r="1.2" fill="currentColor" opacity="0.2"/>
-            <circle cx="42" cy="6" r="1.5" fill="currentColor"/><circle cx="54" cy="6" r="1.5" fill="currentColor"/>
-            <circle cx="42" cy="10" r="1.5" fill="currentColor"/><circle cx="46" cy="10" r="1.5" fill="currentColor"/><circle cx="50" cy="10" r="1.5" fill="currentColor"/><circle cx="54" cy="10" r="1.2" fill="currentColor" opacity="0.2"/>
-            <circle cx="42" cy="14" r="1.5" fill="currentColor"/><circle cx="54" cy="14" r="1.5" fill="currentColor"/>
-            <circle cx="42" cy="18" r="1.5" fill="currentColor"/><circle cx="46" cy="18" r="1.5" fill="currentColor"/><circle cx="50" cy="18" r="1.5" fill="currentColor"/><circle cx="54" cy="18" r="1.2" fill="currentColor" opacity="0.2"/>
-          </svg>
+        <!-- Replace this with your own logo SVG, or customize the text below -->
+        <a href="/" class="hover:opacity-80 transition-opacity font-mono text-sm font-bold text-accent" aria-label="Home">
+          <span class="opacity-50">at://</span>press
         </a>
         <div class="flex items-center gap-4 sm:gap-5 text-sm text-muted">
           <a href="/write" class="hover:text-accent transition-colors">write</a>
@@ -110,7 +70,7 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
         <p class="text-center sm:text-left">
           powered by <a href="https://atproto.com" target="_blank" rel="noopener" class="text-accent/70 hover:text-accent transition-colors">AT Protocol</a>
           <span class="text-border-light mx-2">&middot;</span>
-          served from <a href="https://arcnode.xyz" class="text-accent/70 hover:text-accent transition-colors">arcnode.xyz</a>
+          served from <a href={PDS_URL} class="text-accent/70 hover:text-accent transition-colors">{PDS_URL ? new URL(PDS_URL).hostname : "your PDS"}</a>
         </p>
         <div id="theme-selector" role="group" aria-label="Theme selector" class="flex items-center gap-1.5">
           {Object.entries(THEME_COLORS).map(([name, color]) => (
