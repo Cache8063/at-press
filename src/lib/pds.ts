@@ -342,5 +342,96 @@ export function invalidateAbout(): void {
   aboutCache = null;
 }
 
+// --- Bluesky feed ---
+
+const BSKY_PUBLIC_API = "https://public.api.bsky.app";
+const FEED_TTL = 300_000; // 5 minutes
+
+export interface FeedPost {
+  uri: string;
+  cid: string;
+  text: string;
+  createdAt: string;
+  likeCount: number;
+  repostCount: number;
+  replyCount: number;
+  images: Array<{ thumb: string; alt: string }>;
+}
+
+let feedCache: CacheEntry<FeedPost[]> | null = null;
+
+export async function getBlueskyFeed(limit = 3): Promise<FeedPost[]> {
+  const stale = feedCache;
+  if (isFresh(feedCache)) return feedCache.data.slice(0, limit);
+
+  try {
+    const params = new URLSearchParams({
+      actor: DID,
+      limit: String(Math.min(limit * 2, 30)), // fetch extra to filter replies/reposts
+      filter: "posts_no_replies",
+    });
+
+    const res = await fetch(`${BSKY_PUBLIC_API}/xrpc/app.bsky.feed.getAuthorFeed?${params}`);
+    if (!res.ok) {
+      console.error("Bluesky feed fetch failed:", res.status);
+      return stale?.data?.slice(0, limit) ?? [];
+    }
+
+    const data = (await res.json()) as {
+      feed: Array<{
+        post: {
+          uri: string;
+          cid: string;
+          author: { did: string };
+          record: { text?: string; createdAt?: string };
+          likeCount?: number;
+          repostCount?: number;
+          replyCount?: number;
+          embed?: {
+            $type?: string;
+            images?: Array<{ thumb?: string; alt?: string }>;
+          };
+        };
+        reason?: unknown;
+      }>;
+    };
+
+    const posts: FeedPost[] = [];
+
+    for (const item of data.feed) {
+      // Skip reposts
+      if (item.reason) continue;
+      // Only own posts
+      if (item.post.author.did !== DID) continue;
+
+      const images: FeedPost["images"] = [];
+      if (item.post.embed?.$type === "app.bsky.embed.images#view" && item.post.embed.images) {
+        for (const img of item.post.embed.images) {
+          if (img.thumb) images.push({ thumb: img.thumb, alt: img.alt || "" });
+        }
+      }
+
+      posts.push({
+        uri: item.post.uri,
+        cid: item.post.cid,
+        text: item.post.record.text || "",
+        createdAt: item.post.record.createdAt || "",
+        likeCount: item.post.likeCount || 0,
+        repostCount: item.post.repostCount || 0,
+        replyCount: item.post.replyCount || 0,
+        images,
+      });
+
+      if (posts.length >= limit) break;
+    }
+
+    feedCache = { data: posts, expiresAt: Date.now() + FEED_TTL };
+    return posts;
+  } catch (err) {
+    console.error("Failed to fetch Bluesky feed:", err);
+    return stale?.data?.slice(0, limit) ?? [];
+  }
+}
+
 // Re-export constants for backward compatibility
 export { HANDLE, DID, PDS_URL } from "./constants";

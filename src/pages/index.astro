@@ -1,15 +1,16 @@
 ---
 import Base from "../layouts/Base.astro";
-import { getBlogEntries, getProfile, getAbout } from "../lib/pds";
+import { getBlogEntries, getProfile, getAbout, getBlueskyFeed } from "../lib/pds";
 import { HANDLE, SESSION_DID_COOKIE } from "../lib/constants";
 import { isOwner } from "../lib/auth";
-import { formatDate, excerpt } from "../lib/utils";
+import { formatDate, excerpt, relativeTime, bskyPostUrl } from "../lib/utils";
 import { marked } from "marked";
 import DOMPurify from "isomorphic-dompurify";
 
 const profile = await getProfile();
 const entries = await getBlogEntries();
 const aboutRaw = await getAbout();
+const feedPosts = await getBlueskyFeed(3);
 
 const aboutHtml = DOMPurify.sanitize(await marked.parse(aboutRaw), {
   ADD_ATTR: ["target"],
@@ -94,6 +95,43 @@ const isAuthor = sessionDid ? isOwner(sessionDid) : false;
             </article>
           ))}
         </div>
+      )}
+
+      {/* Bluesky feed */}
+      {feedPosts.length > 0 && (
+        <section class="mt-12 pt-8 border-t border-border/30 fade-in-delay">
+          <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">recent on bluesky</h2>
+          <div class="space-y-4">
+            {feedPosts.map((post) => (
+              <a
+                href={bskyPostUrl(post.uri, HANDLE)}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="group block py-4 px-4 sm:px-5 rounded-lg border border-border/30 hover:border-accent/30 hover:bg-paper-raised card-glow"
+              >
+                <p class="font-serif text-base text-ink leading-relaxed whitespace-pre-line line-clamp-4">{post.text}</p>
+                {post.images.length > 0 && (
+                  <div class="flex gap-2 mt-3 overflow-hidden rounded-lg">
+                    {post.images.slice(0, 2).map((img) => (
+                      <img
+                        src={img.thumb}
+                        alt={img.alt}
+                        class="h-20 w-auto rounded object-cover"
+                        loading="lazy"
+                      />
+                    ))}
+                  </div>
+                )}
+                <div class="flex items-center gap-4 mt-3 text-xs font-mono text-muted">
+                  <time datetime={post.createdAt}>{relativeTime(post.createdAt)}</time>
+                  {post.replyCount > 0 && <span>{post.replyCount} replies</span>}
+                  {post.repostCount > 0 && <span>{post.repostCount} reposts</span>}
+                  {post.likeCount > 0 && <span>{post.likeCount} likes</span>}
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
       )}
     </div>
   </div>
