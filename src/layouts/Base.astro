@@ -29,7 +29,7 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
     <meta property="og:url" content={canonicalUrl.toString()} />
     <title>{title}</title>
     <script is:inline>
-      (function(){var t=localStorage.getItem("blog-theme");if(t==="midnight"){localStorage.removeItem("blog-theme")}else if(t&&t!=="default"){document.documentElement.setAttribute("data-theme",t)}})();
+      (function(){var t=localStorage.getItem("blog-theme");if(t==="midnight"){localStorage.removeItem("blog-theme");t=null}if(!t||t==="eink"){document.documentElement.setAttribute("data-theme","eink")}else if(t!=="default"){document.documentElement.setAttribute("data-theme",t)}})();
     </script>
   </head>
   <body class="bg-paper text-ink min-h-screen">
@@ -100,9 +100,9 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
         localStorage.setItem(THEME_STORAGE_KEY, theme);
       }
 
-      // Apply saved theme immediately
+      // Apply saved theme immediately (eink is the default)
       const saved = localStorage.getItem(THEME_STORAGE_KEY);
-      applyTheme(saved || "default");
+      applyTheme(saved || "eink");
 
       // Bind click handlers
       document.querySelectorAll("[data-set-theme]").forEach((btn) => {

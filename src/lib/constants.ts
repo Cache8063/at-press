@@ -32,7 +32,7 @@ export const THEME_COLORS: Record<string, string> = {
   rose: "#f0e2e4",
   eink: "#e5e1dc",
 };
-export const DEFAULT_THEME_COLOR = "#0f172a";
+export const DEFAULT_THEME_COLOR = "#e5e1dc";
 
 // Cache TTLs (milliseconds)
 export const PROFILE_TTL = 3600_000; // 1 hour
