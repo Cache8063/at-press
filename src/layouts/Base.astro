@@ -110,6 +110,25 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
           applyTheme((btn as HTMLElement).dataset.setTheme || "default");
         });
       });
+
+      // E-ink navigation flash: intercept internal link clicks
+      function isEink() {
+        return document.documentElement.getAttribute("data-theme") === "eink";
+      }
+
+      document.addEventListener("click", (e) => {
+        if (!isEink()) return;
+        const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
+        if (!link) return;
+        // Only intercept same-origin, non-external, non-hash links
+        if (link.target === "_blank" || link.origin !== location.origin) return;
+        if (link.getAttribute("href")?.startsWith("#")) return;
+
+        e.preventDefault();
+        const url = link.href;
+        document.body.classList.add("eink-navigating");
+        setTimeout(() => { window.location.href = url; }, 250);
+      });
     </script>
   </body>
 </html>
