@@ -79,6 +79,21 @@
   --color-border-light: #dec9ce;
 }
 
+/* Theme: E-Ink — color e-ink display */
+[data-theme="eink"] {
+  --color-ink: #2d2b28;
+  --color-ink-bright: #1a1918;
+  --color-ink-dim: #5c5955;
+  --color-paper: #e5e1dc;
+  --color-paper-raised: #dbd7d1;
+  --color-paper-dim: #dfdbd5;
+  --color-accent: #4a7a6e;
+  --color-accent-light: #5c8e82;
+  --color-muted: #605c57;
+  --color-border: #c9c4bd;
+  --color-border-light: #d3cec7;
+}
+
 /* Text selection — theme-matched highlight */
 ::selection {
   background: color-mix(in srgb, var(--color-accent) 25%, transparent);
@@ -137,6 +152,12 @@ body {
     radial-gradient(ellipse at 10% 70%, rgba(140, 100, 110, 0.2) 0%, transparent 30%),
     radial-gradient(ellipse at 85% 80%, rgba(150, 110, 120, 0.18) 0%, transparent 28%),
     radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(120, 85, 95, 0.3) 100%);
+}
+
+[data-theme="eink"] body {
+  background-image:
+    radial-gradient(ellipse at 30% 20%, rgba(200, 195, 185, 0.3) 0%, transparent 40%),
+    radial-gradient(ellipse at 70% 70%, rgba(190, 185, 175, 0.2) 0%, transparent 35%);
 }
 
 /* Fade-in animation */
