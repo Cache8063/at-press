@@ -36,8 +36,30 @@ const canonicalUrl = new URL(Astro.url.pathname, BLOG_URL);
     <a href="#main-content" class="skip-link">Skip to content</a>
     <header class="border-b border-gradient">
       <nav class={`${widthClass} mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between`}>
-        <a href="/" class="font-serif text-xl font-bold tracking-tight text-gradient hover:opacity-80 transition-opacity">
-          bkb
+        <a href="/" class="logo-link hover:opacity-80 transition-opacity" aria-label="bkb home">
+          <!-- Text logo (non-eink themes) -->
+          <span class="logo-text font-serif text-xl font-bold tracking-tight text-gradient">bkb</span>
+          <!-- Dot matrix logo (eink theme) -->
+          <svg class="logo-dots" width="56" height="18" viewBox="0 0 56 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- b -->
+            <circle cx="2" cy="2" r="1.5" fill="currentColor"/><circle cx="6" cy="2" r="1.5" fill="currentColor"/><circle cx="10" cy="2" r="1.5" fill="currentColor"/><circle cx="14" cy="2" r="1.2" fill="currentColor" opacity="0.2"/>
+            <circle cx="2" cy="6" r="1.5" fill="currentColor"/><circle cx="14" cy="6" r="1.5" fill="currentColor"/>
+            <circle cx="2" cy="10" r="1.5" fill="currentColor"/><circle cx="6" cy="10" r="1.5" fill="currentColor"/><circle cx="10" cy="10" r="1.5" fill="currentColor"/><circle cx="14" cy="10" r="1.2" fill="currentColor" opacity="0.2"/>
+            <circle cx="2" cy="14" r="1.5" fill="currentColor"/><circle cx="14" cy="14" r="1.5" fill="currentColor"/>
+            <circle cx="2" cy="18" r="1.5" fill="currentColor"/><circle cx="6" cy="18" r="1.5" fill="currentColor"/><circle cx="10" cy="18" r="1.5" fill="currentColor"/><circle cx="14" cy="18" r="1.2" fill="currentColor" opacity="0.2"/>
+            <!-- k -->
+            <circle cx="22" cy="2" r="1.5" fill="currentColor"/><circle cx="34" cy="2" r="1.5" fill="currentColor"/>
+            <circle cx="22" cy="6" r="1.5" fill="currentColor"/><circle cx="30" cy="6" r="1.5" fill="currentColor"/>
+            <circle cx="22" cy="10" r="1.5" fill="currentColor"/><circle cx="26" cy="10" r="1.5" fill="currentColor"/>
+            <circle cx="22" cy="14" r="1.5" fill="currentColor"/><circle cx="30" cy="14" r="1.5" fill="currentColor"/>
+            <circle cx="22" cy="18" r="1.5" fill="currentColor"/><circle cx="34" cy="18" r="1.5" fill="currentColor"/>
+            <!-- b -->
+            <circle cx="42" cy="2" r="1.5" fill="currentColor"/><circle cx="46" cy="2" r="1.5" fill="currentColor"/><circle cx="50" cy="2" r="1.5" fill="currentColor"/><circle cx="54" cy="2" r="1.2" fill="currentColor" opacity="0.2"/>
+            <circle cx="42" cy="6" r="1.5" fill="currentColor"/><circle cx="54" cy="6" r="1.5" fill="currentColor"/>
+            <circle cx="42" cy="10" r="1.5" fill="currentColor"/><circle cx="46" cy="10" r="1.5" fill="currentColor"/><circle cx="50" cy="10" r="1.5" fill="currentColor"/><circle cx="54" cy="10" r="1.2" fill="currentColor" opacity="0.2"/>
+            <circle cx="42" cy="14" r="1.5" fill="currentColor"/><circle cx="54" cy="14" r="1.5" fill="currentColor"/>
+            <circle cx="42" cy="18" r="1.5" fill="currentColor"/><circle cx="46" cy="18" r="1.5" fill="currentColor"/><circle cx="50" cy="18" r="1.5" fill="currentColor"/><circle cx="54" cy="18" r="1.2" fill="currentColor" opacity="0.2"/>
+          </svg>
         </a>
         <div class="flex items-center gap-4 sm:gap-5 text-sm text-muted">
           <a href="/write" class="hover:text-accent transition-colors">write</a>
