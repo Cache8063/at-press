@@ -23,8 +23,8 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@astrojs/node": "^9.1.0",
-    "astro": "^5.7.0",
+    "@astrojs/node": "^10.0.0",
+    "astro": "^6.0.0",
     "better-sqlite3": "^12.6.2",
     "isomorphic-dompurify": "^3.0.0",
     "marked": "^17.0.0"
