@@ -162,10 +162,10 @@ const isAuthor = sessionDid ? isOwner(sessionDid) : false;
             >
               <p class="font-serif text-sm text-ink leading-relaxed whitespace-pre-line line-clamp-4">{post.text}</p>
               {post.images.length > 0 && (
-                <div class="mt-2 overflow-hidden rounded">
+                <div class="mt-2 overflow-hidden rounded max-h-48">
                   <img
                     src={post.images[0].thumb}
-                    alt={post.images[0].alt}
+                    alt={post.images[0].alt?.slice(0, 100) || ""}
                     class="w-full h-auto rounded object-cover"
                     loading="lazy"
                   />
